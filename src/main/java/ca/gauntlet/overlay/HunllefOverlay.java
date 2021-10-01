@@ -113,7 +113,9 @@ public class HunllefOverlay extends Overlay
 
 		for (final NPC tornado : plugin.getTornadoes())
 		{
-			final Polygon polygon = Perspective.getCanvasTilePoly(client, tornado.getLocalLocation());
+			final WorldPoint worldPos = tornado.getWorldLocation();
+			final LocalPoint localPos = LocalPoint.fromWorld(client, worldPos);
+			final Polygon polygon = Perspective.getCanvasTilePoly(client, localPos);
 
 			if (polygon == null)
 			{
