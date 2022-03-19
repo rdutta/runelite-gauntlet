@@ -261,7 +261,14 @@ public class ResourceManager
 			return null;
 		}
 
-		return player.getName() + " received a drop: ";
+		final String name = player.getName();
+
+		if (name == null)
+		{
+			return null;
+		}
+
+		return name.replace('_', ' ') + " received a drop: ";
 	}
 
 	private boolean isLootVarbitSet()
