@@ -126,8 +126,8 @@ public interface TheGauntletConfig extends Config
 	}
 
 	@Range(
-		min = 1,
-		max = 8
+		min = 0,
+		max = 2
 	)
 	@ConfigItem(
 		name = "Tile outline width",
@@ -152,7 +152,7 @@ public interface TheGauntletConfig extends Config
 	)
 	default Color resourceTileOutlineColor()
 	{
-		return Color.YELLOW;
+		return new Color(128, 128, 128, 255); // gray
 	}
 
 	@Alpha
@@ -316,7 +316,7 @@ public interface TheGauntletConfig extends Config
 
 	@Range(
 		min = 1,
-		max = 12
+		max = 2
 	)
 	@ConfigItem(
 		name = "Outline width",
@@ -328,7 +328,7 @@ public interface TheGauntletConfig extends Config
 	@Units(Units.PIXELS)
 	default int utilitiesOutlineWidth()
 	{
-		return 2;
+		return 1;
 	}
 
 	@Alpha
@@ -350,17 +350,17 @@ public interface TheGauntletConfig extends Config
 		name = "Outline Hunllef tile",
 		description = "Outline the Hunllef's tile.",
 		position = 0,
-		keyName = "hunllefOutlineTile",
+		keyName = "hunllefTileOutline",
 		section = "hunllef"
 	)
-	default boolean hunllefOutlineTile()
+	default boolean hunllefTileOutline()
 	{
 		return false;
 	}
 
 	@Range(
 		min = 1,
-		max = 8
+		max = 2
 	)
 	@ConfigItem(
 		name = "Tile outline width",
@@ -415,7 +415,7 @@ public interface TheGauntletConfig extends Config
 
 	@Range(
 		min = 1,
-		max = 8
+		max = 2
 	)
 	@ConfigItem(
 		name = "Tile outline width",
@@ -472,7 +472,7 @@ public interface TheGauntletConfig extends Config
 
 	@Range(
 		min = 1,
-		max = 12
+		max = 2
 	)
 	@ConfigItem(
 		name = "Outline width",
@@ -484,7 +484,7 @@ public interface TheGauntletConfig extends Config
 	@Units(Units.PIXELS)
 	default int demibossOutlineWidth()
 	{
-		return 2;
+		return 1;
 	}
 
 	@ConfigItem(
@@ -501,7 +501,7 @@ public interface TheGauntletConfig extends Config
 
 	@Range(
 		min = 1,
-		max = 12
+		max = 2
 	)
 	@ConfigItem(
 		name = "Outline width",
@@ -513,7 +513,7 @@ public interface TheGauntletConfig extends Config
 	@Units(Units.PIXELS)
 	default int strongNpcOutlineWidth()
 	{
-		return 2;
+		return 1;
 	}
 
 	@Alpha
@@ -526,7 +526,7 @@ public interface TheGauntletConfig extends Config
 	)
 	default Color strongNpcOutlineColor()
 	{
-		return Color.CYAN;
+		return Color.ORANGE;
 	}
 
 	@ConfigItem(
@@ -543,7 +543,7 @@ public interface TheGauntletConfig extends Config
 
 	@Range(
 		min = 1,
-		max = 12
+		max = 2
 	)
 	@ConfigItem(
 		name = "Outline width",
@@ -555,7 +555,7 @@ public interface TheGauntletConfig extends Config
 	@Units(Units.PIXELS)
 	default int weakNpcOutlineWidth()
 	{
-		return 2;
+		return 1;
 	}
 
 	@Alpha
@@ -568,7 +568,7 @@ public interface TheGauntletConfig extends Config
 	)
 	default Color weakNpcOutlineColor()
 	{
-		return Color.CYAN;
+		return Color.ORANGE;
 	}
 
 	// Timer Section
@@ -603,10 +603,10 @@ public interface TheGauntletConfig extends Config
 		name = "Render distance",
 		description = "Set render distance of various overlays.",
 		position = 0,
-		keyName = "resourceRenderDistance",
+		keyName = "renderDistance",
 		section = "other"
 	)
-	default RenderDistance resourceRenderDistance()
+	default RenderDistance renderDistance()
 	{
 		return RenderDistance.FAR;
 	}
@@ -620,7 +620,7 @@ public interface TheGauntletConfig extends Config
 		SHORT("Short", 2350),
 		MEDIUM("Medium", 3525),
 		FAR("Far", 4700),
-		UNCAPPED("Uncapped", 0);
+		UNCAPPED("Uncapped", Integer.MAX_VALUE);
 
 		private final String name;
 		private final int distance;

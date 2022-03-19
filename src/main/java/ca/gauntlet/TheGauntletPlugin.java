@@ -30,18 +30,18 @@
 
 package ca.gauntlet;
 
-import ca.gauntlet.entity.Demiboss;
 import ca.gauntlet.entity.Resource;
-import ca.gauntlet.overlay.HunllefOverlay;
 import ca.gauntlet.overlay.SceneOverlay;
 import ca.gauntlet.overlay.TimerOverlay;
 import ca.gauntlet.resource.ResourceManager;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Provides;
+import java.awt.Color;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import javax.inject.Inject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -53,6 +53,7 @@ import net.runelite.api.NPC;
 import net.runelite.api.NpcID;
 import net.runelite.api.NullNpcID;
 import net.runelite.api.ObjectID;
+import net.runelite.api.Player;
 import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameObjectDespawned;
@@ -68,6 +69,8 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.SkillIconManager;
+import net.runelite.client.game.npcoverlay.HighlightedNpc;
+import net.runelite.client.game.npcoverlay.NpcOverlayService;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -84,32 +87,7 @@ public class TheGauntletPlugin extends Plugin
 	private static final int VARBIT_GAUNTLET_ENTERED = 9178;
 	private static final int VARBIT_GAUNTLET_HUNLLEF_ROOM_ENTERED = 9177;
 
-	private static final Set<Integer> HUNLLEF_IDS = ImmutableSet.of(
-		NpcID.CRYSTALLINE_HUNLLEF, NpcID.CRYSTALLINE_HUNLLEF_9022,
-		NpcID.CRYSTALLINE_HUNLLEF_9023, NpcID.CRYSTALLINE_HUNLLEF_9024,
-		NpcID.CORRUPTED_HUNLLEF, NpcID.CORRUPTED_HUNLLEF_9036,
-		NpcID.CORRUPTED_HUNLLEF_9037, NpcID.CORRUPTED_HUNLLEF_9038
-	);
-
 	private static final Set<Integer> TORNADO_IDS = ImmutableSet.of(NullNpcID.NULL_9025, NullNpcID.NULL_9039);
-
-	private static final Set<Integer> DEMIBOSS_IDS = ImmutableSet.of(
-		NpcID.CRYSTALLINE_BEAR, NpcID.CORRUPTED_BEAR,
-		NpcID.CRYSTALLINE_DARK_BEAST, NpcID.CORRUPTED_DARK_BEAST,
-		NpcID.CRYSTALLINE_DRAGON, NpcID.CORRUPTED_DRAGON
-	);
-
-	private static final Set<Integer> STRONG_NPC_IDS = ImmutableSet.of(
-		NpcID.CRYSTALLINE_SCORPION, NpcID.CORRUPTED_SCORPION,
-		NpcID.CRYSTALLINE_UNICORN, NpcID.CORRUPTED_UNICORN,
-		NpcID.CRYSTALLINE_WOLF, NpcID.CORRUPTED_WOLF
-	);
-
-	private static final Set<Integer> WEAK_NPC_IDS = ImmutableSet.of(
-		NpcID.CRYSTALLINE_BAT, NpcID.CORRUPTED_BAT,
-		NpcID.CRYSTALLINE_RAT, NpcID.CORRUPTED_RAT,
-		NpcID.CRYSTALLINE_SPIDER, NpcID.CORRUPTED_SPIDER
-	);
 
 	private static final Set<Integer> RESOURCE_IDS = ImmutableSet.of(
 		ObjectID.CRYSTAL_DEPOSIT, ObjectID.CORRUPT_DEPOSIT,
@@ -150,7 +128,7 @@ public class TheGauntletPlugin extends Plugin
 	private SceneOverlay sceneOverlay;
 
 	@Inject
-	private HunllefOverlay hunllefOverlay;
+	private NpcOverlayService npcOverlayService;
 
 	@Getter
 	private final Set<Resource> resources = new HashSet<>();
@@ -161,21 +139,13 @@ public class TheGauntletPlugin extends Plugin
 	@Getter
 	private final Set<NPC> tornadoes = new HashSet<>();
 
-	@Getter
-	private final Set<Demiboss> demibosses = new HashSet<>();
+	private final List<Set<?>> entitySets = Arrays.asList(resources, utilities, tornadoes);
 
-	@Getter
-	private final Set<NPC> strongNpcs = new HashSet<>();
-
-	@Getter
-	private final Set<NPC> weakNpcs = new HashSet<>();
-
-	private final List<Set<?>> entitySets = Arrays.asList(resources, utilities, tornadoes, demibosses, strongNpcs, weakNpcs);
-
-	@Getter
-	private NPC hunllef;
+	private final Function<NPC, HighlightedNpc> npcHighlighter = this::highlightNpc;
 
 	private boolean inGauntlet;
+
+	@Getter
 	private boolean inHunllef;
 
 	@Override
@@ -183,7 +153,19 @@ public class TheGauntletPlugin extends Plugin
 	{
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
-			clientThread.invoke(this::pluginEnabled);
+			clientThread.invoke(() -> {
+				if (isGauntletVarbitSet())
+				{
+					timerOverlay.setGauntletStart();
+					resourceManager.init();
+					initGauntlet();
+				}
+
+				if (isHunllefVarbitSet())
+				{
+					initHunllef();
+				}
+			});
 		}
 	}
 
@@ -192,12 +174,11 @@ public class TheGauntletPlugin extends Plugin
 	{
 		overlayManager.remove(sceneOverlay);
 		overlayManager.remove(timerOverlay);
-		overlayManager.remove(hunllefOverlay);
+
+		npcOverlayService.unregisterHighlighter(npcHighlighter);
 
 		inGauntlet = false;
 		inHunllef = false;
-
-		hunllef = null;
 
 		timerOverlay.reset();
 		resourceManager.reset();
@@ -250,10 +231,11 @@ public class TheGauntletPlugin extends Plugin
 				if (inGauntlet && !inHunllef)
 				{
 					resourceManager.reset();
-					resourceManager.init();
+					clientThread.invoke(() -> resourceManager.init());
 				}
 				break;
 			default:
+				this.npcOverlayService.rebuild();
 				break;
 		}
 	}
@@ -380,27 +362,9 @@ public class TheGauntletPlugin extends Plugin
 
 		final NPC npc = event.getNpc();
 
-		final int id = npc.getId();
-
-		if (HUNLLEF_IDS.contains(id))
-		{
-			hunllef = npc;
-		}
-		else if (TORNADO_IDS.contains(id))
+		if (TORNADO_IDS.contains(npc.getId()))
 		{
 			tornadoes.add(npc);
-		}
-		else if (DEMIBOSS_IDS.contains(id))
-		{
-			demibosses.add(new Demiboss(npc));
-		}
-		else if (STRONG_NPC_IDS.contains(id))
-		{
-			strongNpcs.add(npc);
-		}
-		else if (WEAK_NPC_IDS.contains(id))
-		{
-			weakNpcs.add(npc);
 		}
 	}
 
@@ -414,42 +378,9 @@ public class TheGauntletPlugin extends Plugin
 
 		final NPC npc = event.getNpc();
 
-		final int id = npc.getId();
-
-		if (HUNLLEF_IDS.contains(id))
-		{
-			hunllef = null;
-		}
-		else if (TORNADO_IDS.contains(id))
+		if (TORNADO_IDS.contains(npc.getId()))
 		{
 			tornadoes.removeIf(t -> t == npc);
-		}
-		else if (DEMIBOSS_IDS.contains(id))
-		{
-			demibosses.removeIf(d -> d.getNpc() == npc);
-		}
-		else if (STRONG_NPC_IDS.contains(id))
-		{
-			strongNpcs.remove(npc);
-		}
-		else if (WEAK_NPC_IDS.contains(id))
-		{
-			weakNpcs.remove(npc);
-		}
-	}
-
-	private void pluginEnabled()
-	{
-		if (isGauntletVarbitSet())
-		{
-			timerOverlay.setGauntletStart();
-			resourceManager.init();
-			initGauntlet();
-		}
-
-		if (isHunllefVarbitSet())
-		{
-			initHunllef();
 		}
 	}
 
@@ -459,6 +390,8 @@ public class TheGauntletPlugin extends Plugin
 
 		overlayManager.add(sceneOverlay);
 		overlayManager.add(timerOverlay);
+
+		npcOverlayService.registerHighlighter(npcHighlighter);
 	}
 
 	private void initHunllef()
@@ -468,8 +401,7 @@ public class TheGauntletPlugin extends Plugin
 		timerOverlay.setHunllefStart();
 		resourceManager.reset();
 
-		overlayManager.remove(sceneOverlay);
-		overlayManager.add(hunllefOverlay);
+		npcOverlayService.rebuild();
 	}
 
 	private boolean isGauntletVarbitSet()
@@ -480,5 +412,116 @@ public class TheGauntletPlugin extends Plugin
 	private boolean isHunllefVarbitSet()
 	{
 		return client.getVarbitValue(VARBIT_GAUNTLET_HUNLLEF_ROOM_ENTERED) == 1;
+	}
+
+	private HighlightedNpc highlightNpc(final NPC npc)
+	{
+		if (inHunllef)
+		{
+			if (!config.hunllefTileOutline())
+			{
+				return null;
+			}
+
+			switch (npc.getId())
+			{
+				case NpcID.CRYSTALLINE_HUNLLEF:
+				case NpcID.CRYSTALLINE_HUNLLEF_9022:
+				case NpcID.CRYSTALLINE_HUNLLEF_9023:
+				case NpcID.CRYSTALLINE_HUNLLEF_9024:
+				case NpcID.CORRUPTED_HUNLLEF:
+				case NpcID.CORRUPTED_HUNLLEF_9036:
+				case NpcID.CORRUPTED_HUNLLEF_9037:
+				case NpcID.CORRUPTED_HUNLLEF_9038:
+					return HighlightedNpc.builder()
+							.npc(npc)
+							.tile(true)
+							.fillColor(config.hunllefFillColor())
+							.borderWidth((float) config.hunllefTileOutlineWidth())
+							.highlightColor(config.hunllefOutlineColor())
+							.build();
+				default:
+					return null;
+			}
+		}
+
+		final int maxDistance = config.renderDistance().getDistance();
+		final Color highlightColor;
+		final int borderWidth;
+
+		switch (npc.getId())
+		{
+			case NpcID.CRYSTALLINE_BAT:
+			case NpcID.CORRUPTED_BAT:
+			case NpcID.CRYSTALLINE_RAT:
+			case NpcID.CORRUPTED_RAT:
+			case NpcID.CRYSTALLINE_SPIDER:
+			case NpcID.CORRUPTED_SPIDER:
+				if (!config.weakNpcOutline())
+				{
+					return null;
+				}
+
+				highlightColor = config.weakNpcOutlineColor();
+				borderWidth = config.weakNpcOutlineWidth();
+				break;
+			case NpcID.CRYSTALLINE_SCORPION:
+			case NpcID.CORRUPTED_SCORPION:
+			case NpcID.CRYSTALLINE_UNICORN:
+			case NpcID.CORRUPTED_UNICORN:
+			case NpcID.CRYSTALLINE_WOLF:
+			case NpcID.CORRUPTED_WOLF:
+				if (!config.strongNpcOutline())
+				{
+					return null;
+				}
+
+				highlightColor = config.strongNpcOutlineColor();
+				borderWidth = config.strongNpcOutlineWidth();
+				break;
+			case NpcID.CRYSTALLINE_BEAR:
+			case NpcID.CORRUPTED_BEAR:
+				if (!config.demibossOutline())
+				{
+					return null;
+				}
+
+				highlightColor = Color.RED;
+				borderWidth = config.demibossOutlineWidth();
+				break;
+			case NpcID.CRYSTALLINE_DARK_BEAST:
+			case NpcID.CORRUPTED_DARK_BEAST:
+				if (!config.demibossOutline())
+				{
+					return null;
+				}
+
+				highlightColor = Color.GREEN;
+				borderWidth = config.demibossOutlineWidth();
+				break;
+			case NpcID.CRYSTALLINE_DRAGON:
+			case NpcID.CORRUPTED_DRAGON:
+				if (!config.demibossOutline())
+				{
+					return null;
+				}
+
+				highlightColor = Color.BLUE;
+				borderWidth = config.demibossOutlineWidth();
+				break;
+			default:
+				return null;
+		}
+
+		return HighlightedNpc.builder()
+				.npc(npc)
+				.outline(true)
+				.borderWidth((float) borderWidth)
+				.highlightColor(highlightColor)
+				.render(n -> {
+					final Player player = client.getLocalPlayer();
+					return player != null && player.getLocalLocation().distanceTo(npc.getLocalLocation()) <= maxDistance;
+				})
+				.build();
 	}
 }

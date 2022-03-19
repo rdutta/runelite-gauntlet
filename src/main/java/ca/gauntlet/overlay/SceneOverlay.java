@@ -29,14 +29,14 @@ package ca.gauntlet.overlay;
 
 import ca.gauntlet.TheGauntletConfig;
 import ca.gauntlet.TheGauntletPlugin;
-import ca.gauntlet.entity.Demiboss;
 import ca.gauntlet.entity.Resource;
-import static ca.gauntlet.overlay.Utility.drawOutlineAndFill;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Shape;
+import java.awt.Stroke;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import net.runelite.api.Client;
@@ -50,6 +50,7 @@ import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.OverlayPriority;
 import net.runelite.client.ui.overlay.OverlayUtil;
+import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 
 @Singleton
 public class SceneOverlay extends Overlay
@@ -59,17 +60,20 @@ public class SceneOverlay extends Overlay
 	private final Client client;
 	private final TheGauntletPlugin plugin;
 	private final TheGauntletConfig config;
+	private final ModelOutlineRenderer modelOutlineRenderer;
 
 	private Player player;
 
 	@Inject
-	public SceneOverlay(final Client client, final TheGauntletPlugin plugin, final TheGauntletConfig config)
+	public SceneOverlay(final Client client, final TheGauntletPlugin plugin, final TheGauntletConfig config,
+						final ModelOutlineRenderer modelOutlineRenderer)
 	{
 		super(plugin);
 
 		this.client = client;
 		this.plugin = plugin;
 		this.config = config;
+		this.modelOutlineRenderer = modelOutlineRenderer;
 
 		setPosition(OverlayPosition.DYNAMIC);
 		setPriority(OverlayPriority.HIGH);
@@ -86,13 +90,38 @@ public class SceneOverlay extends Overlay
 			return null;
 		}
 
-		renderResources(graphics2D);
-		renderUtilities(graphics2D);
-		renderDemibosses(graphics2D);
-		renderStrongNpcs(graphics2D);
-		renderWeakNpcs(graphics2D);
+		if (plugin.isInHunllef())
+		{
+			renderTornadoes(graphics2D);
+		}
+		else
+		{
+			renderResources(graphics2D);
+			renderUtilities(graphics2D);
+		}
 
 		return null;
+	}
+
+	private void renderTornadoes(final Graphics2D graphics2D)
+	{
+		if (!config.tornadoTileOutline() || plugin.getTornadoes().isEmpty())
+		{
+			return;
+		}
+
+		for (final NPC tornado : plugin.getTornadoes())
+		{
+			final Polygon polygon = Perspective.getCanvasTilePoly(client, tornado.getLocalLocation());
+
+			if (polygon == null)
+			{
+				continue;
+			}
+
+			drawOutlineAndFill(graphics2D, config.tornadoOutlineColor(), config.tornadoFillColor(),
+					config.tornadoTileOutlineWidth(), polygon);
+		}
 	}
 
 	private void renderResources(final Graphics2D graphics2D)
@@ -115,20 +144,17 @@ public class SceneOverlay extends Overlay
 				continue;
 			}
 
-			if (config.resourceOverlay())
+			final Polygon polygon = Perspective.getCanvasTilePoly(client, localPointGameObject);
+
+			if (polygon == null)
 			{
-				final Polygon polygon = Perspective.getCanvasTilePoly(client, localPointGameObject);
-
-				if (polygon == null)
-				{
-					continue;
-				}
-
-				drawOutlineAndFill(graphics2D, config.resourceTileOutlineColor(), config.resourceTileFillColor(),
-					config.resourceTileOutlineWidth(), polygon);
-
-				OverlayUtil.renderImageLocation(client, graphics2D, localPointGameObject, resource.getIcon(), 0);
+				continue;
 			}
+
+			drawOutlineAndFill(graphics2D, config.resourceTileOutlineColor(), config.resourceTileFillColor(),
+				config.resourceTileOutlineWidth(), polygon);
+
+			OverlayUtil.renderImageLocation(client, graphics2D, localPointGameObject, resource.getIcon(), 0);
 		}
 	}
 
@@ -148,115 +174,29 @@ public class SceneOverlay extends Overlay
 				continue;
 			}
 
-			final Shape shape = gameObject.getConvexHull();
-
-			if (shape == null)
-			{
-				continue;
-			}
-
-			drawOutlineAndFill(graphics2D, config.utilitiesOutlineColor(), TRANSPARENT, config.utilitiesOutlineWidth(), shape);
-		}
-	}
-
-	private void renderDemibosses(final Graphics2D graphics2D)
-	{
-		if (!config.demibossOutline() || plugin.getDemibosses().isEmpty())
-		{
-			return;
-		}
-
-		final LocalPoint localPointPlayer = player.getLocalLocation();
-
-		for (final Demiboss demiboss : plugin.getDemibosses())
-		{
-			final NPC npc = demiboss.getNpc();
-
-			final LocalPoint localPointNpc = npc.getLocalLocation();
-
-			if (localPointNpc == null || npc.isDead() || isOutsideRenderDistance(localPointNpc, localPointPlayer))
-			{
-				continue;
-			}
-
-			final Shape shape = npc.getConvexHull();
-
-			if (shape == null)
-			{
-				continue;
-			}
-
-			drawOutlineAndFill(graphics2D, demiboss.getType().getOutlineColor(), TRANSPARENT, config.demibossOutlineWidth(), shape);
-		}
-	}
-
-	private void renderStrongNpcs(final Graphics2D graphics2D)
-	{
-		if (!config.strongNpcOutline() || plugin.getStrongNpcs().isEmpty())
-		{
-			return;
-		}
-
-		final LocalPoint localPointPLayer = player.getLocalLocation();
-
-		for (final NPC npc : plugin.getStrongNpcs())
-		{
-			final LocalPoint localPointNpc = npc.getLocalLocation();
-
-			if (localPointNpc == null || npc.isDead() || isOutsideRenderDistance(localPointNpc, localPointPLayer))
-			{
-				continue;
-			}
-
-			final Shape shape = npc.getConvexHull();
-
-			if (shape == null)
-			{
-				continue;
-			}
-
-			drawOutlineAndFill(graphics2D, config.strongNpcOutlineColor(), TRANSPARENT, config.strongNpcOutlineWidth(), shape);
-		}
-	}
-
-	private void renderWeakNpcs(final Graphics2D graphics2D)
-	{
-		if (!config.weakNpcOutline() || plugin.getWeakNpcs().isEmpty())
-		{
-			return;
-		}
-
-		final LocalPoint localPointPlayer = player.getLocalLocation();
-
-		for (final NPC npc : plugin.getWeakNpcs())
-		{
-			final LocalPoint localPointNpc = npc.getLocalLocation();
-
-			if (localPointNpc == null || npc.isDead() || isOutsideRenderDistance(localPointNpc, localPointPlayer))
-			{
-				continue;
-			}
-
-			final Shape shape = npc.getConvexHull();
-
-			if (shape == null)
-			{
-				continue;
-			}
-
-			drawOutlineAndFill(graphics2D, config.weakNpcOutlineColor(), TRANSPARENT, config.weakNpcOutlineWidth(), shape);
+			modelOutlineRenderer.drawOutline(gameObject, config.utilitiesOutlineWidth(), config.utilitiesOutlineColor(), 1);
 		}
 	}
 
 	private boolean isOutsideRenderDistance(final LocalPoint localPoint, final LocalPoint playerLocation)
 	{
-		final int maxDistance = config.resourceRenderDistance().getDistance();
+		return localPoint.distanceTo(playerLocation) >= config.renderDistance().getDistance();
+	}
 
-		if (maxDistance == 0)
-		{
-			return false;
-		}
+	private static void drawOutlineAndFill(final Graphics2D graphics2D, final Color outlineColor, final Color fillColor,
+										   final float strokeWidth, final Shape shape)
+	{
+		final Color originalColor = graphics2D.getColor();
+		final Stroke originalStroke = graphics2D.getStroke();
 
-		return localPoint.distanceTo(playerLocation) >= maxDistance;
+		graphics2D.setStroke(new BasicStroke(strokeWidth));
+		graphics2D.setColor(outlineColor);
+		graphics2D.draw(shape);
+
+		graphics2D.setColor(fillColor);
+		graphics2D.fill(shape);
+
+		graphics2D.setColor(originalColor);
+		graphics2D.setStroke(originalStroke);
 	}
 }
