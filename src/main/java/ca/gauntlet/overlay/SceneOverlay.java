@@ -42,6 +42,7 @@ import javax.inject.Singleton;
 import net.runelite.api.Client;
 import net.runelite.api.GameObject;
 import net.runelite.api.NPC;
+import net.runelite.api.ObjectID;
 import net.runelite.api.Perspective;
 import net.runelite.api.Player;
 import net.runelite.api.coords.LocalPoint;
@@ -126,7 +127,7 @@ public class SceneOverlay extends Overlay
 
 	private void renderResources(final Graphics2D graphics2D)
 	{
-		if (!config.resourceOverlay() || plugin.getResources().isEmpty())
+		if (!config.overlayResources() || plugin.getResources().isEmpty())
 		{
 			return;
 		}
@@ -135,6 +136,11 @@ public class SceneOverlay extends Overlay
 
 		for (final Resource resource : plugin.getResources())
 		{
+			if (!isOverlayEnabled(resource))
+			{
+				continue;
+			}
+
 			final GameObject gameObject = resource.getGameObject();
 
 			final LocalPoint localPointGameObject = gameObject.getLocalLocation();
@@ -181,6 +187,29 @@ public class SceneOverlay extends Overlay
 	private boolean isOutsideRenderDistance(final LocalPoint localPoint, final LocalPoint playerLocation)
 	{
 		return localPoint.distanceTo(playerLocation) >= config.renderDistance().getDistance();
+	}
+
+	private boolean isOverlayEnabled(final Resource resource)
+	{
+		switch (resource.getGameObject().getId()) {
+			case ObjectID.CRYSTAL_DEPOSIT:
+			case ObjectID.CORRUPT_DEPOSIT:
+				return config.overlayOreDeposit();
+			case ObjectID.PHREN_ROOTS:
+			case ObjectID.PHREN_ROOTS_36066:
+				return config.overlayPhrenRoots();
+			case ObjectID.LINUM_TIRINUM:
+			case ObjectID.LINUM_TIRINUM_36072:
+				return config.overlayLinumTirinum();
+			case ObjectID.GRYM_ROOT:
+			case ObjectID.GRYM_ROOT_36070:
+				return config.overlayGrymRoot();
+			case ObjectID.FISHING_SPOT_36068:
+			case ObjectID.FISHING_SPOT_35971:
+				return config.overlayFishingSpot();
+			default:
+				return false;
+		}
 	}
 
 	private static void drawOutlineAndFill(final Graphics2D graphics2D, final Color outlineColor, final Color fillColor,
