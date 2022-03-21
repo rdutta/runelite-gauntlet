@@ -28,8 +28,8 @@
 
 package ca.gauntlet.resource;
 
-import ca.gauntlet.TheGauntletPlugin;
 import ca.gauntlet.TheGauntletConfig;
+import ca.gauntlet.TheGauntletPlugin;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -50,32 +50,24 @@ public class ResourceManager
 	private static final int VARBIT_LOOT_DROP_NOTIFICATIONS = 5399;
 	private static final int VARBIT_UNTRADEABLE_LOOT_NOTIFICATIONS = 5402;
 
-	private static final int NORMAL_GAUNTLET_REGION_ID = 7512;
-	private static final int CORRUPTED_GAUNTLET_REGION_ID = 7768;
-
 	private static final String MESSAGE_UNTRADEABLE_DROP = "Untradeable drop: ";
 
 	private static final Pattern PATTERN_RESOURCE_DROP = Pattern.compile("((?<quantity>\\d+) x )?(?<name>.+)");
 
+	private final Set<Resource> resources = new HashSet<>();
+
 	@Inject
 	private Client client;
-
 	@Inject
 	private TheGauntletPlugin plugin;
-
 	@Inject
 	private TheGauntletConfig config;
-
 	@Inject
 	private ItemManager itemManager;
-
 	@Inject
 	private InfoBoxManager infoBoxManager;
-
 	@Inject
 	private EventBus eventBus;
-
-	private final Set<Resource> resources = new HashSet<>();
 
 	private Region region = Region.UNKNOWN;
 
@@ -84,8 +76,12 @@ public class ResourceManager
 	public void init()
 	{
 		prefix = isLootVarbitSet() ? MESSAGE_UNTRADEABLE_DROP : getNamedDropMessage();
-		region = getRegion();
-		createCustomCounters();
+		region = Region.fromId(client.getMapRegions()[0]);
+
+		if (config.resourceTracker() && region != Region.UNKNOWN)
+		{
+			createInfoBoxCountersFromConfig();
+		}
 	}
 
 	public void reset()
@@ -103,44 +99,50 @@ public class ResourceManager
 		infoBoxManager.removeIf(ResourceCounter.class::isInstance);
 	}
 
-	public void parseChatMessage(String chatMessage)
+	public void parseChatMessage(final String chatMessage)
 	{
 		if (!config.resourceTracker() || region == Region.UNKNOWN || prefix == null)
 		{
 			return;
 		}
 
-		chatMessage = Text.removeTags(chatMessage);
+		String parsedMessage = Text.removeTags(chatMessage);
 
-		if (chatMessage.startsWith(prefix))
+		if (parsedMessage.startsWith(prefix))
 		{
-			chatMessage = chatMessage.replace(prefix, "");
-
-			processNpcResource(chatMessage);
+			parsedMessage = parsedMessage.replace(prefix, "");
+			processNpcResource(parsedMessage);
 		}
 		else
 		{
-			processSkillResource(chatMessage);
+			processSkillResource(parsedMessage);
 		}
 	}
 
-	private void processNpcResource(final String chatMessage)
+	public void remove(final ResourceCounter resourceCounter)
 	{
-		final Matcher matcher = PATTERN_RESOURCE_DROP.matcher(chatMessage);
+		resources.remove(resourceCounter.getResource());
+		eventBus.unregister(resourceCounter);
+		infoBoxManager.removeInfoBox(resourceCounter);
+	}
+
+	private void processNpcResource(final String parsedMessage)
+	{
+		final Matcher matcher = PATTERN_RESOURCE_DROP.matcher(parsedMessage);
 
 		if (!matcher.matches())
 		{
 			return;
 		}
 
-		final String itemName = matcher.group("name");
+		final String name = matcher.group("name");
 
-		if (itemName == null)
+		if (name == null)
 		{
 			return;
 		}
 
-		final Resource resource = Resource.fromName(itemName, region == Region.CORRUPTED);
+		final Resource resource = Resource.fromName(name, region == Region.CORRUPTED);
 
 		if (resource == null || !resources.contains(resource))
 		{
@@ -148,14 +150,15 @@ public class ResourceManager
 		}
 
 		final String quantity = matcher.group("quantity");
-		final int itemCount = quantity != null ? Integer.parseInt(quantity) : 1;
 
-		processResource(resource, itemCount);
+		final int count = quantity != null ? Integer.parseInt(quantity) : 1;
+
+		processResource(resource, count);
 	}
 
-	private void processSkillResource(final String chatMessage)
+	private void processSkillResource(final String parsedMessage)
 	{
-		final Map<Resource, Integer> mapping = Resource.fromPattern(chatMessage, region == Region.CORRUPTED);
+		final Map<Resource, Integer> mapping = Resource.fromPattern(parsedMessage, region == Region.CORRUPTED);
 
 		if (mapping == null)
 		{
@@ -169,74 +172,69 @@ public class ResourceManager
 			return;
 		}
 
-		final int itemCount = mapping.get(resource);
+		final int count = mapping.get(resource);
 
-		processResource(resource, itemCount);
+		processResource(resource, count);
 	}
 
-	private void processResource(final Resource resource, final int itemCount)
+	private void processResource(final Resource resource, final int count)
 	{
 		if (resources.add(resource))
 		{
-			final ResourceCounter counter = new ResourceCounter(plugin, resource, itemManager.getImage(resource.getItemId()), itemCount);
-
-			eventBus.register(counter);
-
-			infoBoxManager.addInfoBox(counter);
+			final ResourceCounter resourceCounter = new ResourceCounter(resource,
+				itemManager.getImage(resource.getItemId()), count, plugin, this);
+			eventBus.register(resourceCounter);
+			infoBoxManager.addInfoBox(resourceCounter);
 		}
 		else
 		{
-			eventBus.post(new ResourceEvent(resource, itemCount * -1));
+			eventBus.post(new ResourceEvent(resource, count * -1));
 		}
 	}
 
-	private void createCustomCounters()
+	private void createInfoBoxCountersFromConfig()
 	{
-		if (!config.resourceTracker() || region == Region.UNKNOWN)
-		{
-			return;
-		}
+		final int oreCount = config.resourceOre();
+		final int barkCount = config.resourceBark();
+		final int tirinumCount = config.resourceTirinum();
+		final int grymCount = config.resourceGrym();
+		final int frameCount = config.resourceFrame();
+		final int fishCount = config.resourcePaddlefish();
+		final int shardCount = config.resourceShard();
 
-		final int ore = config.resourceOre();
-		final int bark = config.resourceBark();
-		final int tirinum = config.resourceTirinum();
-		final int grym = config.resourceGrym();
-		final int frame = config.resourceFrame();
-		final int fish = config.resourcePaddlefish();
-		final int shard = config.resourceShard();
 		final boolean bowstring = config.resourceBowstring();
 		final boolean spike = config.resourceSpike();
 		final boolean orb = config.resourceOrb();
 
 		final boolean corrupted = region == Region.CORRUPTED;
 
-		if (ore > 0)
+		if (oreCount > 0)
 		{
-			processResource(corrupted ? Resource.CORRUPTED_ORE : Resource.CRYSTAL_ORE, ore);
+			processResource(corrupted ? Resource.CORRUPTED_ORE : Resource.CRYSTAL_ORE, oreCount);
 		}
-		if (bark > 0)
+		if (barkCount > 0)
 		{
-			processResource(corrupted ? Resource.CORRUPTED_PHREN_BARK : Resource.PHREN_BARK, bark);
+			processResource(corrupted ? Resource.CORRUPTED_PHREN_BARK : Resource.PHREN_BARK, barkCount);
 		}
-		if (tirinum > 0)
+		if (tirinumCount > 0)
 		{
-			processResource(corrupted ? Resource.CORRUPTED_LINUM_TIRINUM : Resource.LINUM_TIRINUM, tirinum);
+			processResource(corrupted ? Resource.CORRUPTED_LINUM_TIRINUM : Resource.LINUM_TIRINUM, tirinumCount);
 		}
-		if (grym > 0)
+		if (grymCount > 0)
 		{
-			processResource(corrupted ? Resource.CORRUPTED_GRYM_LEAF : Resource.GRYM_LEAF, grym);
+			processResource(corrupted ? Resource.CORRUPTED_GRYM_LEAF : Resource.GRYM_LEAF, grymCount);
 		}
-		if (frame > 0)
+		if (frameCount > 0)
 		{
-			processResource(corrupted ? Resource.CORRUPTED_WEAPON_FRAME : Resource.WEAPON_FRAME, frame);
+			processResource(corrupted ? Resource.CORRUPTED_WEAPON_FRAME : Resource.WEAPON_FRAME, frameCount);
 		}
-		if (fish > 0)
+		if (fishCount > 0)
 		{
-			processResource(Resource.RAW_PADDLEFISH, fish);
+			processResource(Resource.RAW_PADDLEFISH, fishCount);
 		}
-		if (shard > 0)
+		if (shardCount > 0)
 		{
-			processResource(corrupted ? Resource.CORRUPTED_SHARDS : Resource.CRYSTAL_SHARDS, shard);
+			processResource(corrupted ? Resource.CORRUPTED_SHARDS : Resource.CRYSTAL_SHARDS, shardCount);
 		}
 		if (bowstring)
 		{
@@ -277,25 +275,23 @@ public class ResourceManager
 			client.getVarbitValue(VARBIT_UNTRADEABLE_LOOT_NOTIFICATIONS) == 1;
 	}
 
-	private Region getRegion()
-	{
-		final int regionId = client.getMapRegions()[0];
-
-		if (regionId == CORRUPTED_GAUNTLET_REGION_ID)
-		{
-			return Region.CORRUPTED;
-		}
-
-		if (regionId == NORMAL_GAUNTLET_REGION_ID)
-		{
-			return Region.NORMAL;
-		}
-
-		return Region.UNKNOWN;
-	}
-
 	private enum Region
 	{
-		UNKNOWN, NORMAL, CORRUPTED
+		NORMAL,
+		CORRUPTED,
+		UNKNOWN;
+
+		private static Region fromId(final int id)
+		{
+			switch (id)
+			{
+				case 7512:
+					return NORMAL;
+				case 7768:
+					return CORRUPTED;
+				default:
+					return UNKNOWN;
+			}
+		}
 	}
 }

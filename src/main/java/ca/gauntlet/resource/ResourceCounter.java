@@ -28,23 +28,30 @@
 package ca.gauntlet.resource;
 
 import ca.gauntlet.TheGauntletPlugin;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
+import lombok.AccessLevel;
+import lombok.Getter;
 import net.runelite.client.eventbus.Subscribe;
-import net.runelite.client.ui.overlay.infobox.Counter;
+import net.runelite.client.ui.overlay.infobox.InfoBox;
 import net.runelite.client.ui.overlay.infobox.InfoBoxPriority;
 
-class ResourceCounter extends Counter
+class ResourceCounter extends InfoBox
 {
+	@Getter(AccessLevel.PACKAGE)
 	private final Resource resource;
+	private final ResourceManager resourceManager;
 
 	private int count;
 	private String text;
 
-	ResourceCounter(final TheGauntletPlugin plugin, final Resource resource, final BufferedImage bufferedImage, final int count)
+	ResourceCounter(final Resource resource, final BufferedImage bufferedImage, final int count,
+					final TheGauntletPlugin plugin, final ResourceManager resourceManager)
 	{
-		super(bufferedImage, plugin, count);
+		super(bufferedImage, plugin);
 
 		this.resource = resource;
+		this.resourceManager = resourceManager;
 		this.count = count;
 		this.text = String.valueOf(count);
 
@@ -57,6 +64,12 @@ class ResourceCounter extends Counter
 		return text;
 	}
 
+	@Override
+	public Color getTextColor()
+	{
+		return Color.WHITE;
+	}
+
 	@Subscribe
 	void onResourceEvent(final ResourceEvent event)
 	{
@@ -66,7 +79,15 @@ class ResourceCounter extends Counter
 		}
 
 		count = Math.max(0, count + event.getCount());
-		text = String.valueOf(count);
+
+		if (count == 0)
+		{
+			resourceManager.remove(this);
+		}
+		else
+		{
+			text = String.valueOf(count);
+		}
 	}
 
 	private static InfoBoxPriority getPriority(final Resource resource)

@@ -38,20 +38,20 @@ import net.runelite.api.ItemID;
 
 enum Resource
 {
-	TELEPORT_CRYSTAL("Teleport crystal", ItemID.TELEPORT_CRYSTAL, null, false),
-	CORRUPTED_TELEPORT_CRYSTAL("Corrupted teleport crystal", ItemID.CORRUPTED_TELEPORT_CRYSTAL, null, true),
+	TELEPORT_CRYSTAL("Teleport crystal", ItemID.TELEPORT_CRYSTAL, false),
+	CORRUPTED_TELEPORT_CRYSTAL("Corrupted teleport crystal", ItemID.CORRUPTED_TELEPORT_CRYSTAL, true),
 
-	WEAPON_FRAME("Weapon frame", ItemID.WEAPON_FRAME_23871, null, false),
-	CORRUPTED_WEAPON_FRAME("Weapon frame", ItemID.WEAPON_FRAME, null, true),
+	WEAPON_FRAME("Weapon frame", ItemID.WEAPON_FRAME_23871, false),
+	CORRUPTED_WEAPON_FRAME("Weapon frame", ItemID.WEAPON_FRAME, true),
 
-	CRYSTALLINE_BOWSTRING("Crystalline bowstring", ItemID.CRYSTALLINE_BOWSTRING, null, false),
-	CORRUPTED_BOWSTRING("Corrupted bowstring", ItemID.CORRUPTED_BOWSTRING, null, true),
+	CRYSTALLINE_BOWSTRING("Crystalline bowstring", ItemID.CRYSTALLINE_BOWSTRING, false),
+	CORRUPTED_BOWSTRING("Corrupted bowstring", ItemID.CORRUPTED_BOWSTRING, true),
 
-	CRYSTAL_SPIKE("Crystal spike", ItemID.CRYSTAL_SPIKE, null, false),
-	CORRUPTED_SPIKE("Corrupted spike", ItemID.CORRUPTED_SPIKE, null, true),
+	CRYSTAL_SPIKE("Crystal spike", ItemID.CRYSTAL_SPIKE, false),
+	CORRUPTED_SPIKE("Corrupted spike", ItemID.CORRUPTED_SPIKE, true),
 
-	CRYSTAL_ORB("Crystal orb", ItemID.CRYSTAL_ORB, null, false),
-	CORRUPTED_ORB("Corrupted orb", ItemID.CORRUPTED_ORB, null, true),
+	CRYSTAL_ORB("Crystal orb", ItemID.CRYSTAL_ORB, false),
+	CORRUPTED_ORB("Corrupted orb", ItemID.CORRUPTED_ORB, true),
 
 	RAW_PADDLEFISH("Raw paddlefish", ItemID.RAW_PADDLEFISH, "You manage to catch a fish\\.", false),
 
@@ -68,8 +68,9 @@ enum Resource
 	CORRUPTED_LINUM_TIRINUM("Linum tirinum", ItemID.LINUM_TIRINUM, "You pick some fibre from the plant\\.", true),
 
 	GRYM_LEAF("Grym leaf", ItemID.GRYM_LEAF_23875, "You pick a herb from the roots\\.", false),
-	CORRUPTED_GRYM_LEAF("Grym leaf", ItemID.GRYM_LEAF, "You pick a herb from the roots\\.", true),
-	;
+	CORRUPTED_GRYM_LEAF("Grym leaf", ItemID.GRYM_LEAF, "You pick a herb from the roots\\.", true);
+
+	private static final Resource[] VALUES = Resource.values();
 
 	private final String name;
 
@@ -90,11 +91,17 @@ enum Resource
 		this.pattern = pattern != null ? Pattern.compile(pattern) : null;
 	}
 
+	Resource(final String name, final int itemId, final boolean corrupted)
+	{
+		this(name, itemId, null, corrupted);
+	}
+
 	static Resource fromName(final String name, final boolean corrupted)
 	{
-		for (final Resource resource : values())
+		for (final Resource resource : VALUES)
 		{
-			if (resource.name.equals(name) && (corrupted == resource.corrupted || resource == RAW_PADDLEFISH))
+			if ((resource.corrupted == corrupted || resource == RAW_PADDLEFISH) &&
+				resource.name.equals(name))
 			{
 				return resource;
 			}
@@ -105,7 +112,7 @@ enum Resource
 
 	static Map<Resource, Integer> fromPattern(final String pattern, final boolean corrupted)
 	{
-		for (final Resource resource : Resource.values())
+		for (final Resource resource : VALUES)
 		{
 			if (resource.pattern == null ||
 				(corrupted != resource.corrupted && resource != Resource.RAW_PADDLEFISH))
