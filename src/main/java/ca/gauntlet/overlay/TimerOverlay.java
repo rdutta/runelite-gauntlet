@@ -91,9 +91,11 @@ public class TimerOverlay extends OverlayPanel
 
 		setClearChildren(false);
 		getMenuEntries().add(new OverlayMenuEntry(RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "The Gauntlet timer"));
-		setPosition(OverlayPosition.ABOVE_CHATBOX_RIGHT);
+		setPosition(OverlayPosition.DYNAMIC);
+		setMovable(true);
+		setSnappable(true);
 		setPriority(OverlayPriority.HIGH);
-		setLayer(OverlayLayer.UNDER_WIDGETS);
+		setLayer(OverlayLayer.ABOVE_WIDGETS);
 	}
 
 	@Override
