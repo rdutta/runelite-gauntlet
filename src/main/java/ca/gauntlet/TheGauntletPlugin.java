@@ -31,6 +31,7 @@
 package ca.gauntlet;
 
 import ca.gauntlet.entity.Resource;
+import ca.gauntlet.entity.Resource.ResourceType;
 import ca.gauntlet.overlay.SceneOverlay;
 import ca.gauntlet.overlay.TimerOverlay;
 import ca.gauntlet.resource.ResourceManager;
@@ -103,9 +104,17 @@ public class TheGauntletPlugin extends Plugin
 		ObjectID.WATER_PUMP_35981, ObjectID.WATER_PUMP_36078
 	);
 
+	@Getter
+	private final Set<Resource> resources = new HashSet<>();
+	@Getter
+	private final Set<GameObject> utilities = new HashSet<>();
+	@Getter
+	private final Set<NPC> tornadoes = new HashSet<>();
+
+	private final List<Set<?>> entitySets = Arrays.asList(resources, utilities, tornadoes);
+
 	@Inject
 	private Client client;
-
 	@Inject
 	private ClientThread clientThread;
 
@@ -114,39 +123,23 @@ public class TheGauntletPlugin extends Plugin
 
 	@Inject
 	private SkillIconManager skillIconManager;
-
 	@Inject
 	private OverlayManager overlayManager;
-
 	@Inject
 	private ResourceManager resourceManager;
 
 	@Inject
 	private TimerOverlay timerOverlay;
-
 	@Inject
 	private SceneOverlay sceneOverlay;
-
 	@Inject
 	private NpcOverlayService npcOverlayService;
 
-	@Getter
-	private final Set<Resource> resources = new HashSet<>();
-
-	@Getter
-	private final Set<GameObject> utilities = new HashSet<>();
-
-	@Getter
-	private final Set<NPC> tornadoes = new HashSet<>();
-
-	private final List<Set<?>> entitySets = Arrays.asList(resources, utilities, tornadoes);
-
-	private final Function<NPC, HighlightedNpc> npcHighlighter = this::highlightNpc;
-
 	private boolean inGauntlet;
-
 	@Getter
 	private boolean inHunllef;
+
+	private final Function<NPC, HighlightedNpc> npcHighlighter = this::highlightNpc;
 
 	@Override
 	protected void startUp()
@@ -221,6 +214,86 @@ public class TheGauntletPlugin extends Plugin
 
 		switch (event.getKey())
 		{
+			case "oreDepositOutlineColor":
+				if (!resources.isEmpty())
+				{
+					resources.stream()
+						.filter(r -> r.isResourceType(ResourceType.ORE_DEPOSIT))
+						.forEach(r -> r.setOutlineColor(config.oreDepositOutlineColor()));
+				}
+				break;
+			case "oreDepositFillColor":
+				if (!resources.isEmpty())
+				{
+					resources.stream()
+						.filter(r -> r.isResourceType(ResourceType.ORE_DEPOSIT))
+						.forEach(r -> r.setFillColor(config.oreDepositFillColor()));
+				}
+				break;
+			case "phrenRootsOutlineColor":
+				if (!resources.isEmpty())
+				{
+					resources.stream()
+						.filter(r -> r.isResourceType(ResourceType.PHREN_ROOTS))
+						.forEach(r -> r.setOutlineColor(config.phrenRootsOutlineColor()));
+				}
+				break;
+			case "phrenRootsFillColor":
+				if (!resources.isEmpty())
+				{
+					resources.stream()
+						.filter(r -> r.isResourceType(ResourceType.PHREN_ROOTS))
+						.forEach(r -> r.setFillColor(config.phrenRootsFillColor()));
+				}
+				break;
+			case "linumTirinumOutlineColor":
+				if (!resources.isEmpty())
+				{
+					resources.stream()
+						.filter(r -> r.isResourceType(ResourceType.LINUM_TIRINUM))
+						.forEach(r -> r.setOutlineColor(config.linumTirinumOutlineColor()));
+				}
+				break;
+			case "linumTirinumFillColor":
+				if (!resources.isEmpty())
+				{
+					resources.stream()
+						.filter(r -> r.isResourceType(ResourceType.LINUM_TIRINUM))
+						.forEach(r -> r.setFillColor(config.linumTirinumFillColor()));
+				}
+				break;
+			case "grymRootOutlineColor":
+				if (!resources.isEmpty())
+				{
+					resources.stream()
+						.filter(r -> r.isResourceType(ResourceType.GRYM_ROOT))
+						.forEach(r -> r.setOutlineColor(config.grymRootOutlineColor()));
+				}
+				break;
+			case "grymRootFillColor":
+				if (!resources.isEmpty())
+				{
+					resources.stream()
+						.filter(r -> r.isResourceType(ResourceType.GRYM_ROOT))
+						.forEach(r -> r.setFillColor(config.grymRootFillColor()));
+				}
+				break;
+			case "fishingSpotOutlineColor":
+				if (!resources.isEmpty())
+				{
+					resources.stream()
+						.filter(r -> r.isResourceType(ResourceType.FISHING_SPOT))
+						.forEach(r -> r.setOutlineColor(config.fishingSpotOutlineColor()));
+				}
+				break;
+			case "fishingSpotFillColor":
+				if (!resources.isEmpty())
+				{
+					resources.stream()
+						.filter(r -> r.isResourceType(ResourceType.FISHING_SPOT))
+						.forEach(r -> r.setFillColor(config.fishingSpotFillColor()));
+				}
+				break;
 			case "resourceIconSize":
 				if (!resources.isEmpty())
 				{
@@ -235,7 +308,7 @@ public class TheGauntletPlugin extends Plugin
 				}
 				break;
 			default:
-				this.npcOverlayService.rebuild();
+				npcOverlayService.rebuild();
 				break;
 		}
 	}
@@ -322,7 +395,47 @@ public class TheGauntletPlugin extends Plugin
 
 		if (RESOURCE_IDS.contains(id))
 		{
-			resources.add(new Resource(gameObject, skillIconManager, config.resourceIconSize()));
+			final ResourceType resourceType;
+			final Color outlineColor;
+			final Color fillColor;
+
+			switch (id)
+			{
+				case ObjectID.CRYSTAL_DEPOSIT:
+				case ObjectID.CORRUPT_DEPOSIT:
+					resourceType = ResourceType.ORE_DEPOSIT;
+					outlineColor = config.oreDepositOutlineColor();
+					fillColor = config.oreDepositFillColor();
+					break;
+				case ObjectID.PHREN_ROOTS:
+				case ObjectID.PHREN_ROOTS_36066:
+					resourceType = ResourceType.PHREN_ROOTS;
+					outlineColor = config.phrenRootsOutlineColor();
+					fillColor = config.phrenRootsFillColor();
+					break;
+				case ObjectID.FISHING_SPOT_36068:
+				case ObjectID.FISHING_SPOT_35971:
+					resourceType = ResourceType.FISHING_SPOT;
+					outlineColor = config.fishingSpotOutlineColor();
+					fillColor = config.fishingSpotFillColor();
+					break;
+				case ObjectID.GRYM_ROOT:
+				case ObjectID.GRYM_ROOT_36070:
+					resourceType = ResourceType.GRYM_ROOT;
+					outlineColor = config.grymRootOutlineColor();
+					fillColor = config.grymRootFillColor();
+					break;
+				case ObjectID.LINUM_TIRINUM:
+				case ObjectID.LINUM_TIRINUM_36072:
+					resourceType = ResourceType.LINUM_TIRINUM;
+					outlineColor = config.linumTirinumOutlineColor();
+					fillColor = config.linumTirinumFillColor();
+					break;
+				default:
+					throw new IllegalArgumentException("Unsupported resource id: " + id);
+			}
+
+			resources.add(new Resource(resourceType, gameObject, skillIconManager, config.resourceIconSize(), outlineColor, fillColor));
 		}
 		else if (UTILITY_IDS.contains(id))
 		{
@@ -434,12 +547,12 @@ public class TheGauntletPlugin extends Plugin
 				case NpcID.CORRUPTED_HUNLLEF_9037:
 				case NpcID.CORRUPTED_HUNLLEF_9038:
 					return HighlightedNpc.builder()
-							.npc(npc)
-							.tile(true)
-							.fillColor(config.hunllefFillColor())
-							.borderWidth((float) config.hunllefTileOutlineWidth())
-							.highlightColor(config.hunllefOutlineColor())
-							.build();
+						.npc(npc)
+						.tile(true)
+						.fillColor(config.hunllefFillColor())
+						.borderWidth((float) config.hunllefTileOutlineWidth())
+						.highlightColor(config.hunllefOutlineColor())
+						.build();
 				default:
 					return null;
 			}
@@ -514,14 +627,14 @@ public class TheGauntletPlugin extends Plugin
 		}
 
 		return HighlightedNpc.builder()
-				.npc(npc)
-				.outline(true)
-				.borderWidth((float) borderWidth)
-				.highlightColor(highlightColor)
-				.render(n -> {
-					final Player player = client.getLocalPlayer();
-					return player != null && player.getLocalLocation().distanceTo(npc.getLocalLocation()) <= maxDistance;
-				})
-				.build();
+			.npc(npc)
+			.outline(true)
+			.borderWidth((float) borderWidth)
+			.highlightColor(highlightColor)
+			.render(n -> {
+				final Player player = client.getLocalPlayer();
+				return player != null && player.getLocalLocation().distanceTo(npc.getLocalLocation()) <= maxDistance;
+			})
+			.build();
 	}
 }

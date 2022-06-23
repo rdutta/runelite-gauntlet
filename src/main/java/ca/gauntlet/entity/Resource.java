@@ -28,16 +28,22 @@
 
 package ca.gauntlet.entity;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import lombok.Getter;
+import lombok.Setter;
 import net.runelite.api.GameObject;
-import net.runelite.api.ObjectID;
 import net.runelite.api.Skill;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.util.ImageUtil;
 
 public class Resource
 {
+	private static final int DEFAULT_ICON_SIZE = 14;
+
+	@Getter
+	private final ResourceType resourceType;
+
 	@Getter
 	private final GameObject gameObject;
 
@@ -47,51 +53,73 @@ public class Resource
 
 	private int iconSize;
 
-	public Resource(final GameObject gameObject, final SkillIconManager skillIconManager, final int iconSize)
+	@Getter
+	@Setter
+	private Color outlineColor;
+
+	@Getter
+	@Setter
+	private Color fillColor;
+
+	public Resource(final ResourceType resourceType, final GameObject gameObject, final SkillIconManager skillIconManager, final int iconSize, final Color outlineColor, final Color fillColor)
 	{
+		this.resourceType = resourceType;
 		this.gameObject = gameObject;
 		this.iconSize = iconSize;
+		this.outlineColor = outlineColor;
+		this.fillColor = fillColor;
 
-		this.originalIcon = getOriginalIcon(skillIconManager, gameObject.getId());
+		originalIcon = getOriginalIcon(skillIconManager, resourceType);
+	}
+
+	public boolean isResourceType(final ResourceType resourceType)
+	{
+		return this.resourceType == resourceType;
 	}
 
 	public void setIconSize(final int iconSize)
 	{
 		this.iconSize = iconSize;
-		icon = ImageUtil.resizeImage(originalIcon, iconSize, iconSize);
+		final int size = iconSize <= 0 ? DEFAULT_ICON_SIZE : iconSize;
+		icon = ImageUtil.resizeImage(originalIcon, size, size);
 	}
 
 	public BufferedImage getIcon()
 	{
 		if (icon == null)
 		{
-			icon = ImageUtil.resizeImage(originalIcon, iconSize, iconSize);
+			final int size = iconSize <= 0 ? DEFAULT_ICON_SIZE : iconSize;
+			icon = ImageUtil.resizeImage(originalIcon, size, size);
 		}
 
 		return icon;
 	}
 
-	private static BufferedImage getOriginalIcon(final SkillIconManager skillIconManager, final int objectId)
+	private static BufferedImage getOriginalIcon(final SkillIconManager skillIconManager, final ResourceType resourceType)
 	{
-		switch (objectId)
+		switch (resourceType)
 		{
-			case ObjectID.CRYSTAL_DEPOSIT:
-			case ObjectID.CORRUPT_DEPOSIT:
+			case ORE_DEPOSIT:
 				return skillIconManager.getSkillImage(Skill.MINING);
-			case ObjectID.PHREN_ROOTS:
-			case ObjectID.PHREN_ROOTS_36066:
+			case PHREN_ROOTS:
 				return skillIconManager.getSkillImage(Skill.WOODCUTTING);
-			case ObjectID.FISHING_SPOT_36068:
-			case ObjectID.FISHING_SPOT_35971:
+			case FISHING_SPOT:
 				return skillIconManager.getSkillImage(Skill.FISHING);
-			case ObjectID.GRYM_ROOT:
-			case ObjectID.GRYM_ROOT_36070:
+			case GRYM_ROOT:
 				return skillIconManager.getSkillImage(Skill.HERBLORE);
-			case ObjectID.LINUM_TIRINUM:
-			case ObjectID.LINUM_TIRINUM_36072:
+			case LINUM_TIRINUM:
 				return skillIconManager.getSkillImage(Skill.FARMING);
 			default:
-				throw new IllegalArgumentException("Unsupported gauntlet resource gameobject id: " + objectId);
+				throw new IllegalArgumentException("Unsupported resource type");
 		}
+	}
+
+	public enum ResourceType
+	{
+		ORE_DEPOSIT,
+		PHREN_ROOTS,
+		GRYM_ROOT,
+		LINUM_TIRINUM,
+		FISHING_SPOT
 	}
 }

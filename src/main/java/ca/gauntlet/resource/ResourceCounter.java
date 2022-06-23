@@ -53,7 +53,7 @@ class ResourceCounter extends InfoBox
 		this.resource = resource;
 		this.resourceManager = resourceManager;
 		this.count = count;
-		this.text = String.valueOf(count);
+		text = String.valueOf(count);
 
 		setPriority(getPriority(resource));
 	}

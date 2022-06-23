@@ -240,7 +240,7 @@ public interface TheGauntletConfig extends Config
 
 	@ConfigItem(
 		name = "Overlay resources",
-		description = "Overlay resources with a respective icon and tile outline.",
+		description = "Toggle enabling/disabling resource overlays.",
 		position = 0,
 		keyName = "overlayResources",
 		section = "resourceOverlay"
@@ -262,10 +262,36 @@ public interface TheGauntletConfig extends Config
 		return true;
 	}
 
+	@Alpha
+	@ConfigItem(
+		name = "Ore outline color",
+		description = "Change the outline color of ore deposits.",
+		position = 2,
+		keyName = "oreDepositOutlineColor",
+		section = "resourceOverlay"
+	)
+	default Color oreDepositOutlineColor()
+	{
+		return new Color(255, 0, 0, 255);
+	}
+
+	@Alpha
+	@ConfigItem(
+		name = "Ore fill color",
+		description = "Change the fill color of ore deposits.",
+		position = 3,
+		keyName = "oreDepositFillColor",
+		section = "resourceOverlay"
+	)
+	default Color oreDepositFillColor()
+	{
+		return new Color(255, 0, 0, 50);
+	}
+
 	@ConfigItem(
 		name = "Phren Roots",
 		description = "Toggle overlaying phren roots.",
-		position = 2,
+		position = 4,
 		keyName = "overlayPhrenRoots",
 		section = "resourceOverlay"
 	)
@@ -274,10 +300,36 @@ public interface TheGauntletConfig extends Config
 		return true;
 	}
 
+	@Alpha
+	@ConfigItem(
+		name = "Phren outline color",
+		description = "Change the outline color of phren roots.",
+		position = 5,
+		keyName = "phrenRootsOutlineColor",
+		section = "resourceOverlay"
+	)
+	default Color phrenRootsOutlineColor()
+	{
+		return new Color(0, 255, 0, 255);
+	}
+
+	@Alpha
+	@ConfigItem(
+		name = "Phren fill color",
+		description = "Change the fill color of phren roots.",
+		position = 6,
+		keyName = "phrenRootsFillColor",
+		section = "resourceOverlay"
+	)
+	default Color phrenRootsFillColor()
+	{
+		return new Color(0, 255, 0, 50);
+	}
+
 	@ConfigItem(
 		name = "Linum Tirinum",
 		description = "Toggle overlaying linum tirinum.",
-		position = 3,
+		position = 7,
 		keyName = "overlayLinumTirinum",
 		section = "resourceOverlay"
 	)
@@ -286,10 +338,36 @@ public interface TheGauntletConfig extends Config
 		return true;
 	}
 
+	@Alpha
+	@ConfigItem(
+		name = "Linum outline color",
+		description = "Change the outline color of linum tirinum.",
+		position = 8,
+		keyName = "linumTirinumOutlineColor",
+		section = "resourceOverlay"
+	)
+	default Color linumTirinumOutlineColor()
+	{
+		return new Color(255, 255, 255, 255);
+	}
+
+	@Alpha
+	@ConfigItem(
+		name = "Linum fill color",
+		description = "Change the fill color of linum tirinum.",
+		position = 9,
+		keyName = "linumTirinumFillColor",
+		section = "resourceOverlay"
+	)
+	default Color linumTirinumFillColor()
+	{
+		return new Color(255, 255, 255, 50);
+	}
+
 	@ConfigItem(
 		name = "Grym Root",
 		description = "Toggle overlaying grym roots.",
-		position = 4,
+		position = 10,
 		keyName = "overlayGrymRoot",
 		section = "resourceOverlay"
 	)
@@ -298,10 +376,36 @@ public interface TheGauntletConfig extends Config
 		return true;
 	}
 
+	@Alpha
+	@ConfigItem(
+		name = "Grym outline color",
+		description = "Change the outline color of grym roots.",
+		position = 11,
+		keyName = "grymRootOutlineColor",
+		section = "resourceOverlay"
+	)
+	default Color grymRootOutlineColor()
+	{
+		return new Color(255, 255, 0, 255);
+	}
+
+	@Alpha
+	@ConfigItem(
+		name = "Grym fill color",
+		description = "Change the fill color of grym roots.",
+		position = 12,
+		keyName = "grymRootFillColor",
+		section = "resourceOverlay"
+	)
+	default Color grymRootFillColor()
+	{
+		return new Color(255, 255, 0, 50);
+	}
+
 	@ConfigItem(
 		name = "Fishing Spot",
 		description = "Toggle overlaying fishing spots.",
-		position = 5,
+		position = 13,
 		keyName = "overlayFishingSpot",
 		section = "resourceOverlay"
 	)
@@ -310,14 +414,40 @@ public interface TheGauntletConfig extends Config
 		return true;
 	}
 
+	@Alpha
+	@ConfigItem(
+		name = "Fishing outline color",
+		description = "Change the outline color of fishing spots.",
+		position = 14,
+		keyName = "fishingSpotOutlineColor",
+		section = "resourceOverlay"
+	)
+	default Color fishingSpotOutlineColor()
+	{
+		return new Color(0, 255, 255, 255);
+	}
+
+	@Alpha
+	@ConfigItem(
+		name = "Fishing fill color",
+		description = "Change the fill color of fishing spots.",
+		position = 15,
+		keyName = "fishingSpotFillColor",
+		section = "resourceOverlay"
+	)
+	default Color fishingSpotFillColor()
+	{
+		return new Color(0, 255, 255, 50);
+	}
+
 	@Range(
-		min = 12,
+		min = 0,
 		max = 64
 	)
 	@ConfigItem(
 		name = "Icon size",
-		description = "Change the size of the resource icons.",
-		position = 6,
+		description = "Change the size of the resource icons.<br>0px width = disabled",
+		position = 16,
 		keyName = "resourceIconSize",
 		section = "resourceOverlay"
 	)
@@ -332,9 +462,26 @@ public interface TheGauntletConfig extends Config
 		max = 2
 	)
 	@ConfigItem(
+		name = "Hull outline width",
+		description = "Change the width of the resource hull outline.<br>0px width = disabled",
+		position = 17,
+		keyName = "resourceHullOutlineWidth",
+		section = "resourceOverlay"
+	)
+	@Units(Units.PIXELS)
+	default int resourceHullOutlineWidth()
+	{
+		return 1;
+	}
+
+	@Range(
+		min = 0,
+		max = 2
+	)
+	@ConfigItem(
 		name = "Tile outline width",
-		description = "Change the width of the resource tile outline.",
-		position = 7,
+		description = "Change the width of the resource tile outline.<br>0px width = disabled",
+		position = 18,
 		keyName = "resourceTileOutlineWidth",
 		section = "resourceOverlay"
 	)
@@ -342,32 +489,6 @@ public interface TheGauntletConfig extends Config
 	default int resourceTileOutlineWidth()
 	{
 		return 1;
-	}
-
-	@Alpha
-	@ConfigItem(
-		name = "Tile outline color",
-		description = "Change the tile outline color of resources.",
-		position = 8,
-		keyName = "resourceTileOutlineColor",
-		section = "resourceOverlay"
-	)
-	default Color resourceTileOutlineColor()
-	{
-		return new Color(128, 128, 128, 255); // gray
-	}
-
-	@Alpha
-	@ConfigItem(
-		name = "Tile fill color",
-		description = "Change the tile fill color of resources.",
-		position = 9,
-		keyName = "resourceTileFillColor",
-		section = "resourceOverlay"
-	)
-	default Color resourceTileFillColor()
-	{
-		return new Color(255, 255, 255, 50);
 	}
 
 	// Utilities Section

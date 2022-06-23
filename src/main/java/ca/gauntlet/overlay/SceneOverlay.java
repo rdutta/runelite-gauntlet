@@ -121,7 +121,7 @@ public class SceneOverlay extends Overlay
 			}
 
 			drawOutlineAndFill(graphics2D, config.tornadoOutlineColor(), config.tornadoFillColor(),
-					config.tornadoTileOutlineWidth(), polygon);
+				config.tornadoTileOutlineWidth(), polygon);
 		}
 	}
 
@@ -150,17 +150,26 @@ public class SceneOverlay extends Overlay
 				continue;
 			}
 
-			final Polygon polygon = Perspective.getCanvasTilePoly(client, localPointGameObject);
-
-			if (polygon == null)
+			if (config.resourceHullOutlineWidth() > 0)
 			{
-				continue;
+				modelOutlineRenderer.drawOutline(gameObject, config.resourceHullOutlineWidth(), resource.getOutlineColor(), 1);
 			}
 
-			drawOutlineAndFill(graphics2D, config.resourceTileOutlineColor(), config.resourceTileFillColor(),
-				config.resourceTileOutlineWidth(), polygon);
+			if (config.resourceTileOutlineWidth() > 0)
+			{
+				final Polygon polygon = Perspective.getCanvasTilePoly(client, localPointGameObject);
 
-			OverlayUtil.renderImageLocation(client, graphics2D, localPointGameObject, resource.getIcon(), 0);
+				if (polygon != null)
+				{
+					drawOutlineAndFill(graphics2D, resource.getOutlineColor(), resource.getFillColor(),
+						config.resourceTileOutlineWidth(), polygon);
+				}
+			}
+
+			if (config.resourceIconSize() > 0)
+			{
+				OverlayUtil.renderImageLocation(client, graphics2D, localPointGameObject, resource.getIcon(), 0);
+			}
 		}
 	}
 
@@ -191,7 +200,8 @@ public class SceneOverlay extends Overlay
 
 	private boolean isOverlayEnabled(final Resource resource)
 	{
-		switch (resource.getGameObject().getId()) {
+		switch (resource.getGameObject().getId())
+		{
 			case ObjectID.CRYSTAL_DEPOSIT:
 			case ObjectID.CORRUPT_DEPOSIT:
 				return config.overlayOreDeposit();

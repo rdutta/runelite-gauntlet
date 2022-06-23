@@ -75,7 +75,7 @@ public class TimerOverlay extends OverlayPanel
 		this.config = config;
 		this.chatMessageManager = chatMessageManager;
 
-		this.timerComponent = new PanelComponent();
+		timerComponent = new PanelComponent();
 		timerComponent.setBorder(new Rectangle(2, 1, 4, 0));
 		timerComponent.setBackgroundColor(null);
 
@@ -86,8 +86,8 @@ public class TimerOverlay extends OverlayPanel
 		prepTimeComponent = LineComponent.builder().left("Preparation:").right("").build();
 		totalTimeComponent = LineComponent.builder().left("Total:").right("").build();
 
-		this.timeGauntletStart = -1;
-		this.timeHunllefStart = -1;
+		timeGauntletStart = -1;
+		timeHunllefStart = -1;
 
 		setClearChildren(false);
 		getMenuEntries().add(new OverlayMenuEntry(RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "The Gauntlet timer"));
