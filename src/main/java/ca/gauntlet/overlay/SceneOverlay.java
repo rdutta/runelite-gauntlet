@@ -39,6 +39,8 @@ import java.awt.Shape;
 import java.awt.Stroke;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+
+import ca.gauntlet.resource.ResourceManager;
 import net.runelite.api.Client;
 import net.runelite.api.GameObject;
 import net.runelite.api.NPC;
@@ -62,12 +64,17 @@ public class SceneOverlay extends Overlay
 	private final TheGauntletPlugin plugin;
 	private final TheGauntletConfig config;
 	private final ModelOutlineRenderer modelOutlineRenderer;
+	private final ResourceManager resourceManager;
 
 	private Player player;
 
 	@Inject
-	public SceneOverlay(final Client client, final TheGauntletPlugin plugin, final TheGauntletConfig config,
-						final ModelOutlineRenderer modelOutlineRenderer)
+	public SceneOverlay(
+		final Client client,
+		final TheGauntletPlugin plugin,
+		final TheGauntletConfig config,
+		final ModelOutlineRenderer modelOutlineRenderer,
+		final ResourceManager resourceManager)
 	{
 		super(plugin);
 
@@ -75,6 +82,7 @@ public class SceneOverlay extends Overlay
 		this.plugin = plugin;
 		this.config = config;
 		this.modelOutlineRenderer = modelOutlineRenderer;
+		this.resourceManager = resourceManager;
 
 		setPosition(OverlayPosition.DYNAMIC);
 		setPriority(OverlayPriority.HIGH);
@@ -141,6 +149,12 @@ public class SceneOverlay extends Overlay
 				continue;
 			}
 
+			if (config.resourceRemoveOutlineOnceAcquired()
+				&& hasAcquiredResource(resource))
+			{
+				continue;
+			}
+
 			final GameObject gameObject = resource.getGameObject();
 
 			final LocalPoint localPointGameObject = gameObject.getLocalLocation();
@@ -170,6 +184,37 @@ public class SceneOverlay extends Overlay
 			{
 				OverlayUtil.renderImageLocation(client, graphics2D, localPointGameObject, resource.getIcon(), 0);
 			}
+		}
+	}
+
+	private boolean hasAcquiredResource(Resource resource)
+	{
+		switch (resource.getGameObject().getId())
+		{
+			case ObjectID.CRYSTAL_DEPOSIT:
+				return this.resourceManager.getResourceCount("Crystal ore") < 1;
+
+			case ObjectID.CORRUPT_DEPOSIT:
+				return this.resourceManager.getResourceCount("Corrupted ore") < 1;
+
+			case ObjectID.PHREN_ROOTS:
+			case ObjectID.PHREN_ROOTS_36066:
+				return this.resourceManager.getResourceCount("Phren bark") < 1;
+
+			case ObjectID.LINUM_TIRINUM:
+			case ObjectID.LINUM_TIRINUM_36072:
+				return this.resourceManager.getResourceCount("Linum tirinum") < 1;
+
+			case ObjectID.GRYM_ROOT:
+			case ObjectID.GRYM_ROOT_36070:
+				return this.resourceManager.getResourceCount("Grym leaf") < 1;
+
+			case ObjectID.FISHING_SPOT_36068:
+			case ObjectID.FISHING_SPOT_35971:
+				return this.resourceManager.getResourceCount("Raw paddlefish") < 1;
+
+			default:
+				return false;
 		}
 	}
 
@@ -222,8 +267,12 @@ public class SceneOverlay extends Overlay
 		}
 	}
 
-	private static void drawOutlineAndFill(final Graphics2D graphics2D, final Color outlineColor, final Color fillColor,
-										   final float strokeWidth, final Shape shape)
+	private static void drawOutlineAndFill(
+		final Graphics2D graphics2D,
+		final Color outlineColor,
+		final Color fillColor,
+		final float strokeWidth,
+		final Shape shape)
 	{
 		final Color originalColor = graphics2D.getColor();
 		final Stroke originalStroke = graphics2D.getStroke();

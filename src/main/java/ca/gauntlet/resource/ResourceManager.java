@@ -30,6 +30,8 @@ package ca.gauntlet.resource;
 
 import ca.gauntlet.TheGauntletConfig;
 import ca.gauntlet.TheGauntletPlugin;
+
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -55,6 +57,8 @@ public class ResourceManager
 	private static final Pattern PATTERN_RESOURCE_DROP = Pattern.compile("((?<quantity>\\d+) x )?(?<name>.+)");
 
 	private final Set<Resource> resources = new HashSet<>();
+
+	private final HashMap<String, ResourceCounter> resourceCounters = new HashMap<>();
 
 	@Inject
 	private Client client;
@@ -91,6 +95,8 @@ public class ResourceManager
 
 		resources.clear();
 
+		resourceCounters.clear();
+
 		infoBoxManager.getInfoBoxes()
 			.stream()
 			.filter(ResourceCounter.class::isInstance)
@@ -124,6 +130,16 @@ public class ResourceManager
 		resources.remove(resourceCounter.getResource());
 		eventBus.unregister(resourceCounter);
 		infoBoxManager.removeInfoBox(resourceCounter);
+	}
+
+	public int getResourceCount(final String resourceName)
+	{
+		if (!this.resourceCounters.containsKey(resourceName))
+		{
+			return 0;
+		}
+
+		return this.resourceCounters.get(resourceName).getCount();
 	}
 
 	private void processNpcResource(final String parsedMessage)
@@ -185,6 +201,7 @@ public class ResourceManager
 				itemManager.getImage(resource.getItemId()), count, plugin, this);
 			eventBus.register(resourceCounter);
 			infoBoxManager.addInfoBox(resourceCounter);
+			resourceCounters.put(resource.getName(), resourceCounter);
 		}
 		else
 		{

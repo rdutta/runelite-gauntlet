@@ -61,7 +61,13 @@ public class Resource
 	@Setter
 	private Color fillColor;
 
-	public Resource(final ResourceType resourceType, final GameObject gameObject, final SkillIconManager skillIconManager, final int iconSize, final Color outlineColor, final Color fillColor)
+	public Resource(
+		final ResourceType resourceType,
+		final GameObject gameObject,
+		final SkillIconManager skillIconManager,
+		final int iconSize,
+		final Color outlineColor,
+		final Color fillColor)
 	{
 		this.resourceType = resourceType;
 		this.gameObject = gameObject;
