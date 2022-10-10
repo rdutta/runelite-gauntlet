@@ -498,7 +498,7 @@ public interface TheGauntletConfig extends Config
 		keyName = "resourceRemoveOutlineOnceAcquired",
 		section = "resourceOverlay"
 	)
-	default boolean resourceRemoveOutlineOnceAcquired() { return false; }
+	default boolean resourceRemoveOutlineOnceAcquired() { return true; }
 
 	// Utilities Section
 

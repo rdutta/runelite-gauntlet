@@ -139,6 +139,11 @@ public class ResourceManager
 	{
 		Resource resource = this.getResourceFromObjectId(resourceEntity.getGameObject().getId());
 
+		if (resource == null)
+		{
+			return false;
+		}
+
 		return this.getResourceCount(resource) < 1;
 	}
 
@@ -291,29 +296,28 @@ public class ResourceManager
 		switch (objectId)
 		{
 			case ObjectID.CRYSTAL_DEPOSIT:
-				return Resource.fromName("Crystal ore", false);
+				return Resource.CRYSTAL_ORE;
 			case ObjectID.CORRUPT_DEPOSIT:
-				return Resource.fromName("Corrupted ore", true);
+				return Resource.CORRUPTED_ORE;
 
 			case ObjectID.PHREN_ROOTS_36066:
-				return Resource.fromName("Phren bark", false);
+				return Resource.PHREN_BARK;
 			case ObjectID.PHREN_ROOTS:
-				return Resource.fromName("Phren bark", true);
+				return Resource.CORRUPTED_PHREN_BARK;
 
 			case ObjectID.LINUM_TIRINUM_36072:
-				return Resource.fromName("Linum tirinum", false);
+				return Resource.LINUM_TIRINUM;
 			case ObjectID.LINUM_TIRINUM:
-				return Resource.fromName("Linum tirinum", true);
+				return Resource.CORRUPTED_LINUM_TIRINUM;
 
 			case ObjectID.GRYM_ROOT_36070:
-				return Resource.fromName("Grym leaf", false);
+				return Resource.GRYM_LEAF;
 			case ObjectID.GRYM_ROOT:
-				return Resource.fromName("Grym leaf", true);
+				return Resource.CORRUPTED_GRYM_LEAF;
 
-			case ObjectID.FISHING_SPOT_36068:
-				return Resource.fromName("Raw paddlefish", false);
 			case ObjectID.FISHING_SPOT_35971:
-				return Resource.fromName("Raw paddlefish", true);
+			case ObjectID.FISHING_SPOT_36068:
+				return Resource.RAW_PADDLEFISH;
 
 			default:
 				return null;
