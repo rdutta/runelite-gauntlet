@@ -29,7 +29,7 @@ package ca.gauntlet.overlay;
 
 import ca.gauntlet.TheGauntletConfig;
 import ca.gauntlet.TheGauntletPlugin;
-import ca.gauntlet.entity.Resource;
+import ca.gauntlet.entity.ResourceEntity;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -135,27 +135,27 @@ public class SceneOverlay extends Overlay
 
 	private void renderResources(final Graphics2D graphics2D)
 	{
-		if (!config.overlayResources() || plugin.getResources().isEmpty())
+		if (!config.overlayResources() || plugin.getResourceEntities().isEmpty())
 		{
 			return;
 		}
 
 		final LocalPoint localPointPlayer = player.getLocalLocation();
 
-		for (final Resource resource : plugin.getResources())
+		for (final ResourceEntity resourceEntity : plugin.getResourceEntities())
 		{
-			if (!isOverlayEnabled(resource))
+			if (!isOverlayEnabled(resourceEntity))
 			{
 				continue;
 			}
 
 			if (config.resourceRemoveOutlineOnceAcquired()
-				&& hasAcquiredResource(resource))
+				&& this.resourceManager.hasAcquiredResource(resourceEntity))
 			{
 				continue;
 			}
 
-			final GameObject gameObject = resource.getGameObject();
+			final GameObject gameObject = resourceEntity.getGameObject();
 
 			final LocalPoint localPointGameObject = gameObject.getLocalLocation();
 
@@ -166,7 +166,7 @@ public class SceneOverlay extends Overlay
 
 			if (config.resourceHullOutlineWidth() > 0)
 			{
-				modelOutlineRenderer.drawOutline(gameObject, config.resourceHullOutlineWidth(), resource.getOutlineColor(), 1);
+				modelOutlineRenderer.drawOutline(gameObject, config.resourceHullOutlineWidth(), resourceEntity.getOutlineColor(), 1);
 			}
 
 			if (config.resourceTileOutlineWidth() > 0)
@@ -175,46 +175,15 @@ public class SceneOverlay extends Overlay
 
 				if (polygon != null)
 				{
-					drawOutlineAndFill(graphics2D, resource.getOutlineColor(), resource.getFillColor(),
+					drawOutlineAndFill(graphics2D, resourceEntity.getOutlineColor(), resourceEntity.getFillColor(),
 						config.resourceTileOutlineWidth(), polygon);
 				}
 			}
 
 			if (config.resourceIconSize() > 0)
 			{
-				OverlayUtil.renderImageLocation(client, graphics2D, localPointGameObject, resource.getIcon(), 0);
+				OverlayUtil.renderImageLocation(client, graphics2D, localPointGameObject, resourceEntity.getIcon(), 0);
 			}
-		}
-	}
-
-	private boolean hasAcquiredResource(Resource resource)
-	{
-		switch (resource.getGameObject().getId())
-		{
-			case ObjectID.CRYSTAL_DEPOSIT:
-				return this.resourceManager.getResourceCount("Crystal ore") < 1;
-
-			case ObjectID.CORRUPT_DEPOSIT:
-				return this.resourceManager.getResourceCount("Corrupted ore") < 1;
-
-			case ObjectID.PHREN_ROOTS:
-			case ObjectID.PHREN_ROOTS_36066:
-				return this.resourceManager.getResourceCount("Phren bark") < 1;
-
-			case ObjectID.LINUM_TIRINUM:
-			case ObjectID.LINUM_TIRINUM_36072:
-				return this.resourceManager.getResourceCount("Linum tirinum") < 1;
-
-			case ObjectID.GRYM_ROOT:
-			case ObjectID.GRYM_ROOT_36070:
-				return this.resourceManager.getResourceCount("Grym leaf") < 1;
-
-			case ObjectID.FISHING_SPOT_36068:
-			case ObjectID.FISHING_SPOT_35971:
-				return this.resourceManager.getResourceCount("Raw paddlefish") < 1;
-
-			default:
-				return false;
 		}
 	}
 
@@ -243,9 +212,9 @@ public class SceneOverlay extends Overlay
 		return localPoint.distanceTo(playerLocation) >= config.renderDistance().getDistance();
 	}
 
-	private boolean isOverlayEnabled(final Resource resource)
+	private boolean isOverlayEnabled(final ResourceEntity resourceEntity)
 	{
-		switch (resource.getGameObject().getId())
+		switch (resourceEntity.getGameObject().getId())
 		{
 			case ObjectID.CRYSTAL_DEPOSIT:
 			case ObjectID.CORRUPT_DEPOSIT:

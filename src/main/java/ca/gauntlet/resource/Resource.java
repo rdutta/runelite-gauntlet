@@ -36,7 +36,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import net.runelite.api.ItemID;
 
-enum Resource
+public enum Resource
 {
 	TELEPORT_CRYSTAL("Teleport crystal", ItemID.TELEPORT_CRYSTAL, false),
 	CORRUPTED_TELEPORT_CRYSTAL("Corrupted teleport crystal", ItemID.CORRUPTED_TELEPORT_CRYSTAL, true),

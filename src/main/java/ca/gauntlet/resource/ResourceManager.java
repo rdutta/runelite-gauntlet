@@ -39,7 +39,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+
+import ca.gauntlet.entity.ResourceEntity;
 import net.runelite.api.Client;
+import net.runelite.api.ObjectID;
 import net.runelite.api.Player;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.game.ItemManager;
@@ -58,7 +61,7 @@ public class ResourceManager
 
 	private final Set<Resource> resources = new HashSet<>();
 
-	private final HashMap<String, ResourceCounter> resourceCounters = new HashMap<>();
+	private final HashMap<Resource, ResourceCounter> resourceCounters = new HashMap<Resource, ResourceCounter>();
 
 	@Inject
 	private Client client;
@@ -132,14 +135,23 @@ public class ResourceManager
 		infoBoxManager.removeInfoBox(resourceCounter);
 	}
 
-	public int getResourceCount(final String resourceName)
+	public boolean hasAcquiredResource(ResourceEntity resourceEntity)
 	{
-		if (!this.resourceCounters.containsKey(resourceName))
+		Resource resource = this.getResourceFromObjectId(resourceEntity.getGameObject().getId());
+
+		return this.getResourceCount(resource) < 1;
+	}
+
+	public int getResourceCount(final Resource resourceName)
+	{
+		ResourceCounter resourceCounter = this.resourceCounters.get(resourceName);
+
+		if (resourceCounter == null)
 		{
 			return 0;
 		}
 
-		return this.resourceCounters.get(resourceName).getCount();
+		return resourceCounter.getCount();
 	}
 
 	private void processNpcResource(final String parsedMessage)
@@ -197,11 +209,18 @@ public class ResourceManager
 	{
 		if (resources.add(resource))
 		{
-			final ResourceCounter resourceCounter = new ResourceCounter(resource,
-				itemManager.getImage(resource.getItemId()), count, plugin, this);
+			final ResourceCounter resourceCounter =
+				new ResourceCounter(
+					resource,
+					itemManager.getImage(resource.getItemId()),
+					count,
+					plugin,
+					this
+				);
+
 			eventBus.register(resourceCounter);
 			infoBoxManager.addInfoBox(resourceCounter);
-			resourceCounters.put(resource.getName(), resourceCounter);
+			resourceCounters.put(resource, resourceCounter);
 		}
 		else
 		{
@@ -264,6 +283,40 @@ public class ResourceManager
 		if (orb)
 		{
 			processResource(corrupted ? Resource.CORRUPTED_ORB : Resource.CRYSTAL_ORB, 1);
+		}
+	}
+
+	private Resource getResourceFromObjectId(int objectId)
+	{
+		switch (objectId)
+		{
+			case ObjectID.CRYSTAL_DEPOSIT:
+				return Resource.fromName("Crystal ore", false);
+			case ObjectID.CORRUPT_DEPOSIT:
+				return Resource.fromName("Corrupted ore", true);
+
+			case ObjectID.PHREN_ROOTS_36066:
+				return Resource.fromName("Phren bark", false);
+			case ObjectID.PHREN_ROOTS:
+				return Resource.fromName("Phren bark", true);
+
+			case ObjectID.LINUM_TIRINUM_36072:
+				return Resource.fromName("Linum tirinum", false);
+			case ObjectID.LINUM_TIRINUM:
+				return Resource.fromName("Linum tirinum", true);
+
+			case ObjectID.GRYM_ROOT_36070:
+				return Resource.fromName("Grym leaf", false);
+			case ObjectID.GRYM_ROOT:
+				return Resource.fromName("Grym leaf", true);
+
+			case ObjectID.FISHING_SPOT_36068:
+				return Resource.fromName("Raw paddlefish", false);
+			case ObjectID.FISHING_SPOT_35971:
+				return Resource.fromName("Raw paddlefish", true);
+
+			default:
+				return null;
 		}
 	}
 
