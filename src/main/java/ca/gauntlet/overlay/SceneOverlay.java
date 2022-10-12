@@ -58,8 +58,6 @@ import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 @Singleton
 public class SceneOverlay extends Overlay
 {
-	private static final Color TRANSPARENT = new Color(0, 0, 0, 0);
-
 	private final Client client;
 	private final TheGauntletPlugin plugin;
 	private final TheGauntletConfig config;
@@ -106,7 +104,7 @@ public class SceneOverlay extends Overlay
 		else
 		{
 			renderResources(graphics2D);
-			renderUtilities(graphics2D);
+			renderUtilities();
 		}
 
 		return null;
@@ -149,8 +147,9 @@ public class SceneOverlay extends Overlay
 				continue;
 			}
 
-			if (config.resourceRemoveOutlineOnceAcquired()
-				&& this.resourceManager.hasAcquiredResource(resourceEntity))
+			if (config.resourceTracker() &&
+				config.resourceRemoveOutlineOnceAcquired() &&
+				resourceManager.hasAcquiredResource(resourceEntity))
 			{
 				continue;
 			}
@@ -187,7 +186,7 @@ public class SceneOverlay extends Overlay
 		}
 	}
 
-	private void renderUtilities(final Graphics2D graphics2D)
+	private void renderUtilities()
 	{
 		if (!config.utilitiesOutline() || plugin.getUtilities().isEmpty())
 		{

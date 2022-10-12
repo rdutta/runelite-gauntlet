@@ -42,6 +42,7 @@ class ResourceCounter extends InfoBox
 	private final Resource resource;
 	private final ResourceManager resourceManager;
 
+	@Getter(AccessLevel.PACKAGE)
 	private int count;
 	private String text;
 
@@ -69,8 +70,6 @@ class ResourceCounter extends InfoBox
 	{
 		return Color.WHITE;
 	}
-
-	public int getCount() { return this.count; }
 
 	@Subscribe
 	void onResourceEvent(final ResourceEvent event)

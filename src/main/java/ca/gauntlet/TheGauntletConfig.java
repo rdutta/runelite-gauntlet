@@ -492,13 +492,13 @@ public interface TheGauntletConfig extends Config
 	}
 
 	@ConfigItem(
-		name = "Remove outline once acquired",
-		description = "Remove the outline for resources once they have been acquired",
+		name = "Dynamically remove overlays",
+		description = "Remove the outline for acquired tracked resources.",
 		position = 19,
 		keyName = "resourceRemoveOutlineOnceAcquired",
 		section = "resourceOverlay"
 	)
-	default boolean resourceRemoveOutlineOnceAcquired() { return true; }
+	default boolean resourceRemoveOutlineOnceAcquired() { return false; }
 
 	// Utilities Section
 

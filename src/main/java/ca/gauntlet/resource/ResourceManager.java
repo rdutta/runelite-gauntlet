@@ -61,7 +61,7 @@ public class ResourceManager
 
 	private final Set<Resource> resources = new HashSet<>();
 
-	private final HashMap<Resource, ResourceCounter> resourceCounters = new HashMap<Resource, ResourceCounter>();
+	private final HashMap<Resource, ResourceCounter> resourceCounters = new HashMap<>();
 
 	@Inject
 	private Client client;
@@ -135,21 +135,21 @@ public class ResourceManager
 		infoBoxManager.removeInfoBox(resourceCounter);
 	}
 
-	public boolean hasAcquiredResource(ResourceEntity resourceEntity)
+	public boolean hasAcquiredResource(final ResourceEntity resourceEntity)
 	{
-		Resource resource = this.getResourceFromObjectId(resourceEntity.getGameObject().getId());
+		final Resource resource = getResourceFromObjectId(resourceEntity.getGameObject().getId());
 
 		if (resource == null)
 		{
 			return false;
 		}
 
-		return this.getResourceCount(resource) < 1;
+		return getResourceCount(resource) <= 0;
 	}
 
-	public int getResourceCount(final Resource resourceName)
+	public int getResourceCount(final Resource resource)
 	{
-		ResourceCounter resourceCounter = this.resourceCounters.get(resourceName);
+		final ResourceCounter resourceCounter = resourceCounters.get(resource);
 
 		if (resourceCounter == null)
 		{
@@ -214,14 +214,13 @@ public class ResourceManager
 	{
 		if (resources.add(resource))
 		{
-			final ResourceCounter resourceCounter =
-				new ResourceCounter(
-					resource,
-					itemManager.getImage(resource.getItemId()),
-					count,
-					plugin,
-					this
-				);
+			final ResourceCounter resourceCounter = new ResourceCounter(
+				resource,
+				itemManager.getImage(resource.getItemId()),
+				count,
+				plugin,
+				this
+			);
 
 			eventBus.register(resourceCounter);
 			infoBoxManager.addInfoBox(resourceCounter);
@@ -291,7 +290,7 @@ public class ResourceManager
 		}
 	}
 
-	private Resource getResourceFromObjectId(int objectId)
+	private Resource getResourceFromObjectId(final int objectId)
 	{
 		switch (objectId)
 		{
