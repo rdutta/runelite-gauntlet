@@ -70,6 +70,8 @@ class ResourceCounter extends InfoBox
 		return Color.WHITE;
 	}
 
+	public int getCount() { return this.count; }
+
 	@Subscribe
 	void onResourceEvent(final ResourceEvent event)
 	{

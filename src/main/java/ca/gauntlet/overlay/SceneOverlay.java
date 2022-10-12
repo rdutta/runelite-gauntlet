@@ -29,7 +29,7 @@ package ca.gauntlet.overlay;
 
 import ca.gauntlet.TheGauntletConfig;
 import ca.gauntlet.TheGauntletPlugin;
-import ca.gauntlet.entity.Resource;
+import ca.gauntlet.entity.ResourceEntity;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -39,6 +39,8 @@ import java.awt.Shape;
 import java.awt.Stroke;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+
+import ca.gauntlet.resource.ResourceManager;
 import net.runelite.api.Client;
 import net.runelite.api.GameObject;
 import net.runelite.api.NPC;
@@ -62,12 +64,17 @@ public class SceneOverlay extends Overlay
 	private final TheGauntletPlugin plugin;
 	private final TheGauntletConfig config;
 	private final ModelOutlineRenderer modelOutlineRenderer;
+	private final ResourceManager resourceManager;
 
 	private Player player;
 
 	@Inject
-	public SceneOverlay(final Client client, final TheGauntletPlugin plugin, final TheGauntletConfig config,
-						final ModelOutlineRenderer modelOutlineRenderer)
+	public SceneOverlay(
+		final Client client,
+		final TheGauntletPlugin plugin,
+		final TheGauntletConfig config,
+		final ModelOutlineRenderer modelOutlineRenderer,
+		final ResourceManager resourceManager)
 	{
 		super(plugin);
 
@@ -75,6 +82,7 @@ public class SceneOverlay extends Overlay
 		this.plugin = plugin;
 		this.config = config;
 		this.modelOutlineRenderer = modelOutlineRenderer;
+		this.resourceManager = resourceManager;
 
 		setPosition(OverlayPosition.DYNAMIC);
 		setPriority(OverlayPriority.HIGH);
@@ -127,21 +135,27 @@ public class SceneOverlay extends Overlay
 
 	private void renderResources(final Graphics2D graphics2D)
 	{
-		if (!config.overlayResources() || plugin.getResources().isEmpty())
+		if (!config.overlayResources() || plugin.getResourceEntities().isEmpty())
 		{
 			return;
 		}
 
 		final LocalPoint localPointPlayer = player.getLocalLocation();
 
-		for (final Resource resource : plugin.getResources())
+		for (final ResourceEntity resourceEntity : plugin.getResourceEntities())
 		{
-			if (!isOverlayEnabled(resource))
+			if (!isOverlayEnabled(resourceEntity))
 			{
 				continue;
 			}
 
-			final GameObject gameObject = resource.getGameObject();
+			if (config.resourceRemoveOutlineOnceAcquired()
+				&& this.resourceManager.hasAcquiredResource(resourceEntity))
+			{
+				continue;
+			}
+
+			final GameObject gameObject = resourceEntity.getGameObject();
 
 			final LocalPoint localPointGameObject = gameObject.getLocalLocation();
 
@@ -152,7 +166,7 @@ public class SceneOverlay extends Overlay
 
 			if (config.resourceHullOutlineWidth() > 0)
 			{
-				modelOutlineRenderer.drawOutline(gameObject, config.resourceHullOutlineWidth(), resource.getOutlineColor(), 1);
+				modelOutlineRenderer.drawOutline(gameObject, config.resourceHullOutlineWidth(), resourceEntity.getOutlineColor(), 1);
 			}
 
 			if (config.resourceTileOutlineWidth() > 0)
@@ -161,14 +175,14 @@ public class SceneOverlay extends Overlay
 
 				if (polygon != null)
 				{
-					drawOutlineAndFill(graphics2D, resource.getOutlineColor(), resource.getFillColor(),
+					drawOutlineAndFill(graphics2D, resourceEntity.getOutlineColor(), resourceEntity.getFillColor(),
 						config.resourceTileOutlineWidth(), polygon);
 				}
 			}
 
 			if (config.resourceIconSize() > 0)
 			{
-				OverlayUtil.renderImageLocation(client, graphics2D, localPointGameObject, resource.getIcon(), 0);
+				OverlayUtil.renderImageLocation(client, graphics2D, localPointGameObject, resourceEntity.getIcon(), 0);
 			}
 		}
 	}
@@ -198,9 +212,9 @@ public class SceneOverlay extends Overlay
 		return localPoint.distanceTo(playerLocation) >= config.renderDistance().getDistance();
 	}
 
-	private boolean isOverlayEnabled(final Resource resource)
+	private boolean isOverlayEnabled(final ResourceEntity resourceEntity)
 	{
-		switch (resource.getGameObject().getId())
+		switch (resourceEntity.getGameObject().getId())
 		{
 			case ObjectID.CRYSTAL_DEPOSIT:
 			case ObjectID.CORRUPT_DEPOSIT:
@@ -222,8 +236,12 @@ public class SceneOverlay extends Overlay
 		}
 	}
 
-	private static void drawOutlineAndFill(final Graphics2D graphics2D, final Color outlineColor, final Color fillColor,
-										   final float strokeWidth, final Shape shape)
+	private static void drawOutlineAndFill(
+		final Graphics2D graphics2D,
+		final Color outlineColor,
+		final Color fillColor,
+		final float strokeWidth,
+		final Shape shape)
 	{
 		final Color originalColor = graphics2D.getColor();
 		final Stroke originalStroke = graphics2D.getStroke();

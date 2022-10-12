@@ -72,6 +72,7 @@ enum Resource
 
 	private static final Resource[] VALUES = Resource.values();
 
+	@Getter(AccessLevel.PACKAGE)
 	private final String name;
 
 	@Getter(AccessLevel.PACKAGE)

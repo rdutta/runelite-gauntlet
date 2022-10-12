@@ -30,8 +30,8 @@
 
 package ca.gauntlet;
 
-import ca.gauntlet.entity.Resource;
-import ca.gauntlet.entity.Resource.ResourceType;
+import ca.gauntlet.entity.ResourceEntity;
+import ca.gauntlet.entity.ResourceEntity.ResourceType;
 import ca.gauntlet.overlay.SceneOverlay;
 import ca.gauntlet.overlay.TimerOverlay;
 import ca.gauntlet.resource.ResourceManager;
@@ -105,13 +105,13 @@ public class TheGauntletPlugin extends Plugin
 	);
 
 	@Getter
-	private final Set<Resource> resources = new HashSet<>();
+	private final Set<ResourceEntity> resourceEntities = new HashSet<>();
 	@Getter
 	private final Set<GameObject> utilities = new HashSet<>();
 	@Getter
 	private final Set<NPC> tornadoes = new HashSet<>();
 
-	private final List<Set<?>> entitySets = Arrays.asList(resources, utilities, tornadoes);
+	private final List<Set<?>> entitySets = Arrays.asList(resourceEntities, utilities, tornadoes);
 
 	@Inject
 	private Client client;
@@ -193,7 +193,7 @@ public class TheGauntletPlugin extends Plugin
 			case LOADING:
 				if (inGauntlet)
 				{
-					resources.clear();
+					resourceEntities.clear();
 					utilities.clear();
 				}
 				break;
@@ -215,89 +215,89 @@ public class TheGauntletPlugin extends Plugin
 		switch (event.getKey())
 		{
 			case "oreDepositOutlineColor":
-				if (!resources.isEmpty())
+				if (!resourceEntities.isEmpty())
 				{
-					resources.stream()
+					resourceEntities.stream()
 						.filter(r -> r.isResourceType(ResourceType.ORE_DEPOSIT))
 						.forEach(r -> r.setOutlineColor(config.oreDepositOutlineColor()));
 				}
 				break;
 			case "oreDepositFillColor":
-				if (!resources.isEmpty())
+				if (!resourceEntities.isEmpty())
 				{
-					resources.stream()
+					resourceEntities.stream()
 						.filter(r -> r.isResourceType(ResourceType.ORE_DEPOSIT))
 						.forEach(r -> r.setFillColor(config.oreDepositFillColor()));
 				}
 				break;
 			case "phrenRootsOutlineColor":
-				if (!resources.isEmpty())
+				if (!resourceEntities.isEmpty())
 				{
-					resources.stream()
+					resourceEntities.stream()
 						.filter(r -> r.isResourceType(ResourceType.PHREN_ROOTS))
 						.forEach(r -> r.setOutlineColor(config.phrenRootsOutlineColor()));
 				}
 				break;
 			case "phrenRootsFillColor":
-				if (!resources.isEmpty())
+				if (!resourceEntities.isEmpty())
 				{
-					resources.stream()
+					resourceEntities.stream()
 						.filter(r -> r.isResourceType(ResourceType.PHREN_ROOTS))
 						.forEach(r -> r.setFillColor(config.phrenRootsFillColor()));
 				}
 				break;
 			case "linumTirinumOutlineColor":
-				if (!resources.isEmpty())
+				if (!resourceEntities.isEmpty())
 				{
-					resources.stream()
+					resourceEntities.stream()
 						.filter(r -> r.isResourceType(ResourceType.LINUM_TIRINUM))
 						.forEach(r -> r.setOutlineColor(config.linumTirinumOutlineColor()));
 				}
 				break;
 			case "linumTirinumFillColor":
-				if (!resources.isEmpty())
+				if (!resourceEntities.isEmpty())
 				{
-					resources.stream()
+					resourceEntities.stream()
 						.filter(r -> r.isResourceType(ResourceType.LINUM_TIRINUM))
 						.forEach(r -> r.setFillColor(config.linumTirinumFillColor()));
 				}
 				break;
 			case "grymRootOutlineColor":
-				if (!resources.isEmpty())
+				if (!resourceEntities.isEmpty())
 				{
-					resources.stream()
+					resourceEntities.stream()
 						.filter(r -> r.isResourceType(ResourceType.GRYM_ROOT))
 						.forEach(r -> r.setOutlineColor(config.grymRootOutlineColor()));
 				}
 				break;
 			case "grymRootFillColor":
-				if (!resources.isEmpty())
+				if (!resourceEntities.isEmpty())
 				{
-					resources.stream()
+					resourceEntities.stream()
 						.filter(r -> r.isResourceType(ResourceType.GRYM_ROOT))
 						.forEach(r -> r.setFillColor(config.grymRootFillColor()));
 				}
 				break;
 			case "fishingSpotOutlineColor":
-				if (!resources.isEmpty())
+				if (!resourceEntities.isEmpty())
 				{
-					resources.stream()
+					resourceEntities.stream()
 						.filter(r -> r.isResourceType(ResourceType.FISHING_SPOT))
 						.forEach(r -> r.setOutlineColor(config.fishingSpotOutlineColor()));
 				}
 				break;
 			case "fishingSpotFillColor":
-				if (!resources.isEmpty())
+				if (!resourceEntities.isEmpty())
 				{
-					resources.stream()
+					resourceEntities.stream()
 						.filter(r -> r.isResourceType(ResourceType.FISHING_SPOT))
 						.forEach(r -> r.setFillColor(config.fishingSpotFillColor()));
 				}
 				break;
 			case "resourceIconSize":
-				if (!resources.isEmpty())
+				if (!resourceEntities.isEmpty())
 				{
-					resources.forEach(r -> r.setIconSize(config.resourceIconSize()));
+					resourceEntities.forEach(r -> r.setIconSize(config.resourceIconSize()));
 				}
 				break;
 			case "resourceTracker":
@@ -435,7 +435,7 @@ public class TheGauntletPlugin extends Plugin
 					throw new IllegalArgumentException("Unsupported resource id: " + id);
 			}
 
-			resources.add(new Resource(resourceType, gameObject, skillIconManager, config.resourceIconSize(), outlineColor, fillColor));
+			resourceEntities.add(new ResourceEntity(resourceType, gameObject, skillIconManager, config.resourceIconSize(), outlineColor, fillColor));
 		}
 		else if (UTILITY_IDS.contains(id))
 		{
@@ -457,7 +457,7 @@ public class TheGauntletPlugin extends Plugin
 
 		if (RESOURCE_IDS.contains(gameObject.getId()))
 		{
-			resources.removeIf(o -> o.getGameObject() == gameObject);
+			resourceEntities.removeIf(o -> o.getGameObject() == gameObject);
 		}
 		else if (UTILITY_IDS.contains(id))
 		{

@@ -37,7 +37,7 @@ import net.runelite.api.Skill;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.util.ImageUtil;
 
-public class Resource
+public class ResourceEntity
 {
 	private static final int DEFAULT_ICON_SIZE = 14;
 
@@ -61,7 +61,13 @@ public class Resource
 	@Setter
 	private Color fillColor;
 
-	public Resource(final ResourceType resourceType, final GameObject gameObject, final SkillIconManager skillIconManager, final int iconSize, final Color outlineColor, final Color fillColor)
+	public ResourceEntity(
+		final ResourceType resourceType,
+		final GameObject gameObject,
+		final SkillIconManager skillIconManager,
+		final int iconSize,
+		final Color outlineColor,
+		final Color fillColor)
 	{
 		this.resourceType = resourceType;
 		this.gameObject = gameObject;
