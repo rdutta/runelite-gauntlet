@@ -55,7 +55,10 @@ public class ResourceManager
 	private static final int VARBIT_LOOT_DROP_NOTIFICATIONS = 5399;
 	private static final int VARBIT_UNTRADEABLE_LOOT_NOTIFICATIONS = 5402;
 
+	private static final int SHARD_COUNT_BREAK_DOWN = 80;
+
 	private static final String MESSAGE_UNTRADEABLE_DROP = "Untradeable drop: ";
+	private static final String MESSAGE_BREAK_DOWN = "You break down your";
 
 	private static final Pattern PATTERN_RESOURCE_DROP = Pattern.compile("((?<quantity>\\d+) x )?(?<name>.+)");
 
@@ -191,6 +194,13 @@ public class ResourceManager
 
 	private void processSkillResource(final String parsedMessage)
 	{
+		if (parsedMessage.startsWith(MESSAGE_BREAK_DOWN))
+		{
+			processResource(region == Region.CORRUPTED ?
+				Resource.CORRUPTED_SHARDS : Resource.CRYSTAL_SHARDS, SHARD_COUNT_BREAK_DOWN);
+			return;
+		}
+
 		final Map<Resource, Integer> mapping = Resource.fromPattern(parsedMessage, region == Region.CORRUPTED);
 
 		if (mapping == null)
