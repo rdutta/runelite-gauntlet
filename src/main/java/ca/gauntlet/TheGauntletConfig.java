@@ -109,7 +109,7 @@ public interface TheGauntletConfig extends Config
 		description = "Track resources in counter infoboxes.",
 		position = 0,
 		keyName = "resourceTracker",
-		section = "resourceTracking"
+		section = resourceTrackingSection
 	)
 	default boolean resourceTracker()
 	{
@@ -121,7 +121,7 @@ public interface TheGauntletConfig extends Config
 		description = "The desired number of ores to acquire.",
 		position = 1,
 		keyName = "resourceOre",
-		section = "resourceTracking"
+		section = resourceTrackingSection
 	)
 	default int resourceOre()
 	{
@@ -133,7 +133,7 @@ public interface TheGauntletConfig extends Config
 		description = "The desired number of phren barks to acquire.",
 		position = 2,
 		keyName = "resourceBark",
-		section = "resourceTracking"
+		section = resourceTrackingSection
 	)
 	default int resourceBark()
 	{
@@ -145,7 +145,7 @@ public interface TheGauntletConfig extends Config
 		description = "The desired number of linum tirinums to acquire.",
 		position = 3,
 		keyName = "resourceTirinum",
-		section = "resourceTracking"
+		section = resourceTrackingSection
 	)
 	default int resourceTirinum()
 	{
@@ -157,7 +157,7 @@ public interface TheGauntletConfig extends Config
 		description = "The desired number of grym leaves to acquire.",
 		position = 4,
 		keyName = "resourceGrym",
-		section = "resourceTracking"
+		section = resourceTrackingSection
 	)
 	default int resourceGrym()
 	{
@@ -169,7 +169,7 @@ public interface TheGauntletConfig extends Config
 		description = "The desired number of weapon frames to acquire.",
 		position = 5,
 		keyName = "resourceFrame",
-		section = "resourceTracking"
+		section = resourceTrackingSection
 	)
 	default int resourceFrame()
 	{
@@ -181,7 +181,7 @@ public interface TheGauntletConfig extends Config
 		description = "The desired number of paddlefish to acquire.",
 		position = 6,
 		keyName = "resourcePaddlefish",
-		section = "resourceTracking"
+		section = resourceTrackingSection
 	)
 	default int resourcePaddlefish()
 	{
@@ -193,7 +193,7 @@ public interface TheGauntletConfig extends Config
 		description = "The desired number of crystal shards to acquire.",
 		position = 7,
 		keyName = "resourceShard",
-		section = "resourceTracking"
+		section = resourceTrackingSection
 	)
 	default int resourceShard()
 	{
@@ -205,7 +205,7 @@ public interface TheGauntletConfig extends Config
 		description = "Whether or not to acquire the crystalline or corrupted bowstring.",
 		position = 8,
 		keyName = "resourceBowstring",
-		section = "resourceTracking"
+		section = resourceTrackingSection
 	)
 	default boolean resourceBowstring()
 	{
@@ -217,7 +217,7 @@ public interface TheGauntletConfig extends Config
 		description = "Whether or not to acquire the crystal or corrupted spike.",
 		position = 9,
 		keyName = "resourceSpike",
-		section = "resourceTracking"
+		section = resourceTrackingSection
 	)
 	default boolean resourceSpike()
 	{
@@ -229,7 +229,7 @@ public interface TheGauntletConfig extends Config
 		description = "Whether or not to acquire the crystal or corrupted orb.",
 		position = 10,
 		keyName = "resourceOrb",
-		section = "resourceTracking"
+		section = resourceTrackingSection
 	)
 	default boolean resourceOrb()
 	{
@@ -243,7 +243,7 @@ public interface TheGauntletConfig extends Config
 		description = "Toggle enabling/disabling resource overlays.",
 		position = 0,
 		keyName = "overlayResources",
-		section = "resourceOverlay"
+		section = resourceOverlaySection
 	)
 	default boolean overlayResources()
 	{
@@ -255,7 +255,7 @@ public interface TheGauntletConfig extends Config
 		description = "Toggle overlaying ore deposits.",
 		position = 1,
 		keyName = "overlayOreDeposit",
-		section = "resourceOverlay"
+		section = resourceOverlaySection
 	)
 	default boolean overlayOreDeposit()
 	{
@@ -268,7 +268,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the outline color of ore deposits.",
 		position = 2,
 		keyName = "oreDepositOutlineColor",
-		section = "resourceOverlay"
+		section = resourceOverlaySection
 	)
 	default Color oreDepositOutlineColor()
 	{
@@ -281,7 +281,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the fill color of ore deposits.",
 		position = 3,
 		keyName = "oreDepositFillColor",
-		section = "resourceOverlay"
+		section = resourceOverlaySection
 	)
 	default Color oreDepositFillColor()
 	{
@@ -293,7 +293,7 @@ public interface TheGauntletConfig extends Config
 		description = "Toggle overlaying phren roots.",
 		position = 4,
 		keyName = "overlayPhrenRoots",
-		section = "resourceOverlay"
+		section = resourceOverlaySection
 	)
 	default boolean overlayPhrenRoots()
 	{
@@ -306,7 +306,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the outline color of phren roots.",
 		position = 5,
 		keyName = "phrenRootsOutlineColor",
-		section = "resourceOverlay"
+		section = resourceOverlaySection
 	)
 	default Color phrenRootsOutlineColor()
 	{
@@ -319,7 +319,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the fill color of phren roots.",
 		position = 6,
 		keyName = "phrenRootsFillColor",
-		section = "resourceOverlay"
+		section = resourceOverlaySection
 	)
 	default Color phrenRootsFillColor()
 	{
@@ -331,7 +331,7 @@ public interface TheGauntletConfig extends Config
 		description = "Toggle overlaying linum tirinum.",
 		position = 7,
 		keyName = "overlayLinumTirinum",
-		section = "resourceOverlay"
+		section = resourceOverlaySection
 	)
 	default boolean overlayLinumTirinum()
 	{
@@ -344,7 +344,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the outline color of linum tirinum.",
 		position = 8,
 		keyName = "linumTirinumOutlineColor",
-		section = "resourceOverlay"
+		section = resourceOverlaySection
 	)
 	default Color linumTirinumOutlineColor()
 	{
@@ -357,7 +357,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the fill color of linum tirinum.",
 		position = 9,
 		keyName = "linumTirinumFillColor",
-		section = "resourceOverlay"
+		section = resourceOverlaySection
 	)
 	default Color linumTirinumFillColor()
 	{
@@ -369,7 +369,7 @@ public interface TheGauntletConfig extends Config
 		description = "Toggle overlaying grym roots.",
 		position = 10,
 		keyName = "overlayGrymRoot",
-		section = "resourceOverlay"
+		section = resourceOverlaySection
 	)
 	default boolean overlayGrymRoot()
 	{
@@ -382,7 +382,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the outline color of grym roots.",
 		position = 11,
 		keyName = "grymRootOutlineColor",
-		section = "resourceOverlay"
+		section = resourceOverlaySection
 	)
 	default Color grymRootOutlineColor()
 	{
@@ -395,7 +395,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the fill color of grym roots.",
 		position = 12,
 		keyName = "grymRootFillColor",
-		section = "resourceOverlay"
+		section = resourceOverlaySection
 	)
 	default Color grymRootFillColor()
 	{
@@ -407,7 +407,7 @@ public interface TheGauntletConfig extends Config
 		description = "Toggle overlaying fishing spots.",
 		position = 13,
 		keyName = "overlayFishingSpot",
-		section = "resourceOverlay"
+		section = resourceOverlaySection
 	)
 	default boolean overlayFishingSpot()
 	{
@@ -420,7 +420,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the outline color of fishing spots.",
 		position = 14,
 		keyName = "fishingSpotOutlineColor",
-		section = "resourceOverlay"
+		section = resourceOverlaySection
 	)
 	default Color fishingSpotOutlineColor()
 	{
@@ -433,7 +433,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the fill color of fishing spots.",
 		position = 15,
 		keyName = "fishingSpotFillColor",
-		section = "resourceOverlay"
+		section = resourceOverlaySection
 	)
 	default Color fishingSpotFillColor()
 	{
@@ -441,7 +441,6 @@ public interface TheGauntletConfig extends Config
 	}
 
 	@Range(
-		min = 0,
 		max = 64
 	)
 	@ConfigItem(
@@ -449,7 +448,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the size of the resource icons.<br>0px width = disabled",
 		position = 16,
 		keyName = "resourceIconSize",
-		section = "resourceOverlay"
+		section = resourceOverlaySection
 	)
 	@Units(Units.PIXELS)
 	default int resourceIconSize()
@@ -458,7 +457,6 @@ public interface TheGauntletConfig extends Config
 	}
 
 	@Range(
-		min = 0,
 		max = 2
 	)
 	@ConfigItem(
@@ -466,7 +464,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the width of the resource hull outline.<br>0px width = disabled",
 		position = 17,
 		keyName = "resourceHullOutlineWidth",
-		section = "resourceOverlay"
+		section = resourceOverlaySection
 	)
 	@Units(Units.PIXELS)
 	default int resourceHullOutlineWidth()
@@ -475,7 +473,6 @@ public interface TheGauntletConfig extends Config
 	}
 
 	@Range(
-		min = 0,
 		max = 2
 	)
 	@ConfigItem(
@@ -483,7 +480,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the width of the resource tile outline.<br>0px width = disabled",
 		position = 18,
 		keyName = "resourceTileOutlineWidth",
-		section = "resourceOverlay"
+		section = resourceOverlaySection
 	)
 	@Units(Units.PIXELS)
 	default int resourceTileOutlineWidth()
@@ -496,9 +493,12 @@ public interface TheGauntletConfig extends Config
 		description = "Remove the outline for acquired tracked resources.",
 		position = 19,
 		keyName = "resourceRemoveOutlineOnceAcquired",
-		section = "resourceOverlay"
+		section = resourceOverlaySection
 	)
-	default boolean resourceRemoveOutlineOnceAcquired() { return false; }
+	default boolean resourceRemoveOutlineOnceAcquired()
+	{
+		return false;
+	}
 
 	// Utilities Section
 
@@ -507,7 +507,7 @@ public interface TheGauntletConfig extends Config
 		description = "Outline various utilities in the starting room.",
 		position = 0,
 		keyName = "utilitiesOutline",
-		section = "utilities"
+		section = utilitiesSection
 	)
 	default boolean utilitiesOutline()
 	{
@@ -523,7 +523,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the width of the utilities outline.",
 		position = 1,
 		keyName = "utilitiesOutlineWidth",
-		section = "utilities"
+		section = utilitiesSection
 	)
 	@Units(Units.PIXELS)
 	default int utilitiesOutlineWidth()
@@ -537,7 +537,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the color of the utilities outline.",
 		position = 2,
 		keyName = "utilitiesOutlineColor",
-		section = "utilities"
+		section = utilitiesSection
 	)
 	default Color utilitiesOutlineColor()
 	{
@@ -551,7 +551,7 @@ public interface TheGauntletConfig extends Config
 		description = "Outline the Hunllef's tile.",
 		position = 0,
 		keyName = "hunllefTileOutline",
-		section = "hunllef"
+		section = hunllefSection
 	)
 	default boolean hunllefTileOutline()
 	{
@@ -567,7 +567,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the width of the Hunllef's tile outline.",
 		position = 1,
 		keyName = "hunllefTileOutlineWidth",
-		section = "hunllef"
+		section = hunllefSection
 	)
 	@Units(Units.PIXELS)
 	default int hunllefTileOutlineWidth()
@@ -581,7 +581,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the outline color of the Hunllef's tile.",
 		position = 2,
 		keyName = "hunllefOutlineColor",
-		section = "hunllef"
+		section = hunllefSection
 	)
 	default Color hunllefOutlineColor()
 	{
@@ -594,7 +594,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the fill color of the Hunllef's tile.",
 		position = 3,
 		keyName = "hunllefFillColor",
-		section = "hunllef"
+		section = hunllefSection
 	)
 	default Color hunllefFillColor()
 	{
@@ -606,7 +606,7 @@ public interface TheGauntletConfig extends Config
 		description = "Outline the tiles of tornadoes.",
 		position = 4,
 		keyName = "tornadoTileOutline",
-		section = "hunllef"
+		section = hunllefSection
 	)
 	default boolean tornadoTileOutline()
 	{
@@ -622,7 +622,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change tile outline width of tornadoes.",
 		position = 5,
 		keyName = "tornadoTileOutlineWidth",
-		section = "hunllef"
+		section = hunllefSection
 	)
 	@Units(Units.PIXELS)
 	default int tornadoTileOutlineWidth()
@@ -636,7 +636,7 @@ public interface TheGauntletConfig extends Config
 		description = "Color to outline the tile of a tornado.",
 		position = 6,
 		keyName = "tornadoOutlineColor",
-		section = "hunllef"
+		section = hunllefSection
 	)
 	default Color tornadoOutlineColor()
 	{
@@ -649,7 +649,7 @@ public interface TheGauntletConfig extends Config
 		description = "Color to fill the tile of a tornado.",
 		position = 7,
 		keyName = "tornadoFillColor",
-		section = "hunllef"
+		section = hunllefSection
 	)
 	default Color tornadoFillColor()
 	{
@@ -663,7 +663,7 @@ public interface TheGauntletConfig extends Config
 		description = "Overlay demi-bosses with a colored outline.",
 		position = 0,
 		keyName = "demibossOutline",
-		section = "npcs"
+		section = npcsSection
 	)
 	default boolean demibossOutline()
 	{
@@ -679,7 +679,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the width of the demi-boss outline.",
 		position = 1,
 		keyName = "demibossOutlineWidth",
-		section = "npcs"
+		section = npcsSection
 	)
 	@Units(Units.PIXELS)
 	default int demibossOutlineWidth()
@@ -692,7 +692,7 @@ public interface TheGauntletConfig extends Config
 		description = "Overlay strong npcs with a colored outline.",
 		position = 2,
 		keyName = "strongNpcOutline",
-		section = "npcs"
+		section = npcsSection
 	)
 	default boolean strongNpcOutline()
 	{
@@ -708,7 +708,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the width of the strong npcs outline.",
 		position = 3,
 		keyName = "strongNpcOutlineWidth",
-		section = "npcs"
+		section = npcsSection
 	)
 	@Units(Units.PIXELS)
 	default int strongNpcOutlineWidth()
@@ -722,7 +722,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the outline color of strong npcs.",
 		position = 4,
 		keyName = "strongNpcOutlineColor",
-		section = "npcs"
+		section = npcsSection
 	)
 	default Color strongNpcOutlineColor()
 	{
@@ -734,7 +734,7 @@ public interface TheGauntletConfig extends Config
 		description = "Overlay weak npcs with a colored outline.",
 		position = 5,
 		keyName = "weakNpcOutline",
-		section = "npcs"
+		section = npcsSection
 	)
 	default boolean weakNpcOutline()
 	{
@@ -750,7 +750,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the width of the weak npcs outline.",
 		position = 6,
 		keyName = "weakNpcOutlineWidth",
-		section = "npcs"
+		section = npcsSection
 	)
 	@Units(Units.PIXELS)
 	default int weakNpcOutlineWidth()
@@ -764,7 +764,7 @@ public interface TheGauntletConfig extends Config
 		description = "Change the outline color of weak npcs.",
 		position = 7,
 		keyName = "weakNpcOutlineColor",
-		section = "npcs"
+		section = npcsSection
 	)
 	default Color weakNpcOutlineColor()
 	{
@@ -778,7 +778,7 @@ public interface TheGauntletConfig extends Config
 		keyName = "timerOverlay",
 		name = "Overlay timer",
 		description = "Display an overlay that tracks your gauntlet time.",
-		section = "timer"
+		section = timerSection
 	)
 	default boolean timerOverlay()
 	{
@@ -790,7 +790,7 @@ public interface TheGauntletConfig extends Config
 		keyName = "timerChatMessage",
 		name = "Chat timer",
 		description = "Display a chat message on-death with your gauntlet time.",
-		section = "timer"
+		section = timerSection
 	)
 	default boolean timerChatMessage()
 	{
@@ -804,7 +804,7 @@ public interface TheGauntletConfig extends Config
 		description = "Set render distance of various overlays.",
 		position = 0,
 		keyName = "renderDistance",
-		section = "other"
+		section = otherSection
 	)
 	default RenderDistance renderDistance()
 	{
