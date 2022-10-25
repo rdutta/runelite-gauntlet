@@ -608,9 +608,9 @@ public interface TheGauntletConfig extends Config
 		keyName = "tornadoTileOutline",
 		section = hunllefSection
 	)
-	default boolean tornadoTileOutline()
+	default TileOutline tornadoTileOutline()
 	{
-		return false;
+		return TileOutline.OFF;
 	}
 
 	@Range(
@@ -824,6 +824,23 @@ public interface TheGauntletConfig extends Config
 
 		private final String name;
 		private final int distance;
+
+		@Override
+		public String toString()
+		{
+			return name;
+		}
+	}
+
+	@Getter
+	@AllArgsConstructor
+	enum TileOutline
+	{
+		OFF("Off"),
+		ON("On"),
+		TRUE_TILE("True Tile");
+
+		private final String name;
 
 		@Override
 		public String toString()
