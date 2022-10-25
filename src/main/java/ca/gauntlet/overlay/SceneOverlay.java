@@ -48,6 +48,7 @@ import net.runelite.api.ObjectID;
 import net.runelite.api.Perspective;
 import net.runelite.api.Player;
 import net.runelite.api.coords.LocalPoint;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
@@ -112,14 +113,39 @@ public class SceneOverlay extends Overlay
 
 	private void renderTornadoes(final Graphics2D graphics2D)
 	{
-		if (!config.tornadoTileOutline() || plugin.getTornadoes().isEmpty())
+		if (config.tornadoTileOutline() == TheGauntletConfig.TileOutline.OFF || plugin.getTornadoes().isEmpty())
 		{
 			return;
 		}
 
+		final boolean trueTile = config.tornadoTileOutline() == TheGauntletConfig.TileOutline.TRUE_TILE;
+
 		for (final NPC tornado : plugin.getTornadoes())
 		{
-			final Polygon polygon = Perspective.getCanvasTilePoly(client, tornado.getLocalLocation());
+			Polygon polygon;
+
+			if (trueTile)
+			{
+				final WorldPoint worldPoint = tornado.getWorldLocation();
+
+				if (worldPoint == null)
+				{
+					continue;
+				}
+
+				final LocalPoint localPoint = LocalPoint.fromWorld(client, worldPoint);
+
+				if (localPoint == null)
+				{
+					continue;
+				}
+
+				polygon = Perspective.getCanvasTilePoly(client, localPoint);
+			}
+			else
+			{
+				polygon = Perspective.getCanvasTilePoly(client, tornado.getLocalLocation());
+			}
 
 			if (polygon == null)
 			{
