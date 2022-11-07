@@ -43,7 +43,6 @@ import javax.inject.Singleton;
 import ca.gauntlet.entity.ResourceEntity;
 import net.runelite.api.Client;
 import net.runelite.api.ObjectID;
-import net.runelite.api.Player;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
@@ -52,15 +51,9 @@ import net.runelite.client.util.Text;
 @Singleton
 public class ResourceManager
 {
-	private static final int VARBIT_LOOT_DROP_NOTIFICATIONS = 5399;
-	private static final int VARBIT_UNTRADEABLE_LOOT_NOTIFICATIONS = 5402;
-
 	private static final int SHARD_COUNT_BREAK_DOWN = 80;
 
-	private static final String MESSAGE_UNTRADEABLE_DROP = "Untradeable drop: ";
-	private static final String MESSAGE_BREAK_DOWN = "You break down your";
-
-	private static final Pattern PATTERN_RESOURCE_DROP = Pattern.compile("((?<quantity>\\d+) x )?(?<name>.+)");
+	private static final Pattern PATTERN_RESOURCE_DROP = Pattern.compile("^.+ drop: ((?<quantity>\\d+) x )?(?<name>.+)$");
 
 	private final Set<Resource> resources = new HashSet<>();
 
@@ -81,11 +74,8 @@ public class ResourceManager
 
 	private Region region = Region.UNKNOWN;
 
-	private String prefix;
-
 	public void init()
 	{
-		prefix = isLootVarbitSet() ? MESSAGE_UNTRADEABLE_DROP : getNamedDropMessage();
 		region = Region.fromId(client.getMapRegions()[0]);
 
 		if (config.resourceTracker() && region != Region.UNKNOWN)
@@ -96,7 +86,6 @@ public class ResourceManager
 
 	public void reset()
 	{
-		prefix = null;
 		region = Region.UNKNOWN;
 
 		resources.clear();
@@ -113,21 +102,21 @@ public class ResourceManager
 
 	public void parseChatMessage(final String chatMessage)
 	{
-		if (!config.resourceTracker() || region == Region.UNKNOWN || prefix == null)
+		if (!config.resourceTracker() || region == Region.UNKNOWN)
 		{
 			return;
 		}
 
-		String parsedMessage = Text.removeTags(chatMessage);
-
-		if (parsedMessage.startsWith(prefix))
+		if (chatMessage.startsWith("<"))
 		{
-			parsedMessage = parsedMessage.replace(prefix, "");
-			processNpcResource(parsedMessage);
+			// Loot drops always start with a color tag
+			// e.g. <col=005f00>Player recieved a drop: ...
+			// e.g. <col=ef1020>Untradeable drop: ...
+			processNpcResource(chatMessage);
 		}
 		else
 		{
-			processSkillResource(parsedMessage);
+			processSkillResource(chatMessage);
 		}
 	}
 
@@ -164,7 +153,9 @@ public class ResourceManager
 
 	private void processNpcResource(final String parsedMessage)
 	{
-		final Matcher matcher = PATTERN_RESOURCE_DROP.matcher(parsedMessage);
+		final String noTagsMessage = Text.removeTags(parsedMessage);
+
+		final Matcher matcher = PATTERN_RESOURCE_DROP.matcher(noTagsMessage);
 
 		if (!matcher.matches())
 		{
@@ -194,7 +185,7 @@ public class ResourceManager
 
 	private void processSkillResource(final String parsedMessage)
 	{
-		if (parsedMessage.startsWith(MESSAGE_BREAK_DOWN))
+		if (parsedMessage.startsWith("break down", 4))
 		{
 			processResource(region == Region.CORRUPTED ?
 				Resource.CORRUPTED_SHARDS : Resource.CRYSTAL_SHARDS, SHARD_COUNT_BREAK_DOWN);
@@ -331,31 +322,6 @@ public class ResourceManager
 			default:
 				return null;
 		}
-	}
-
-	private String getNamedDropMessage()
-	{
-		final Player player = client.getLocalPlayer();
-
-		if (player == null)
-		{
-			return null;
-		}
-
-		final String name = player.getName();
-
-		if (name == null)
-		{
-			return null;
-		}
-
-		return name.replace('_', ' ') + " received a drop: ";
-	}
-
-	private boolean isLootVarbitSet()
-	{
-		return client.getVarbitValue(VARBIT_LOOT_DROP_NOTIFICATIONS) == 1 &&
-			client.getVarbitValue(VARBIT_UNTRADEABLE_LOOT_NOTIFICATIONS) == 1;
 	}
 
 	private enum Region
