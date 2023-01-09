@@ -687,10 +687,49 @@ public interface TheGauntletConfig extends Config
 		return 1;
 	}
 
+	@Alpha
+	@ConfigItem(
+		name = "Dark beast color",
+		description = "Change the outline color of dark beasts.",
+		position = 2,
+		keyName = "darkBeastOutlineColor",
+		section = npcsSection
+	)
+	default Color darkBeastOutlineColor()
+	{
+		return Color.GREEN;
+	}
+
+	@Alpha
+	@ConfigItem(
+		name = "Dragon color",
+		description = "Change the outline color of dragons.",
+		position = 3,
+		keyName = "dragonOutlineColor",
+		section = npcsSection
+	)
+	default Color dragonOutlineColor()
+	{
+		return Color.BLUE;
+	}
+
+	@Alpha
+	@ConfigItem(
+		name = "Bear color",
+		description = "Change the outline color of bears.",
+		position = 4,
+		keyName = "bearOutlineColor",
+		section = npcsSection
+	)
+	default Color bearOutlineColor()
+	{
+		return Color.RED;
+	}
+
 	@ConfigItem(
 		name = "Outline strong npcs",
 		description = "Overlay strong npcs with a colored outline.",
-		position = 2,
+		position = 5,
 		keyName = "strongNpcOutline",
 		section = npcsSection
 	)
@@ -706,7 +745,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Outline width",
 		description = "Change the width of the strong npcs outline.",
-		position = 3,
+		position = 6,
 		keyName = "strongNpcOutlineWidth",
 		section = npcsSection
 	)
@@ -720,7 +759,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Outline color",
 		description = "Change the outline color of strong npcs.",
-		position = 4,
+		position = 7,
 		keyName = "strongNpcOutlineColor",
 		section = npcsSection
 	)
@@ -732,7 +771,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Outline weak npcs",
 		description = "Overlay weak npcs with a colored outline.",
-		position = 5,
+		position = 8,
 		keyName = "weakNpcOutline",
 		section = npcsSection
 	)
@@ -748,7 +787,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Outline width",
 		description = "Change the width of the weak npcs outline.",
-		position = 6,
+		position = 9,
 		keyName = "weakNpcOutlineWidth",
 		section = npcsSection
 	)
@@ -762,7 +801,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Outline color",
 		description = "Change the outline color of weak npcs.",
-		position = 7,
+		position = 10,
 		keyName = "weakNpcOutlineColor",
 		section = npcsSection
 	)
@@ -848,4 +887,5 @@ public interface TheGauntletConfig extends Config
 			return name;
 		}
 	}
+
 }
