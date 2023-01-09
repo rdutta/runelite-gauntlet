@@ -599,7 +599,7 @@ public class TheGauntletPlugin extends Plugin
 					return null;
 				}
 
-				highlightColor = Color.RED;
+				highlightColor = config.bearOutlineColor();
 				borderWidth = config.demibossOutlineWidth();
 				break;
 			case NpcID.CRYSTALLINE_DARK_BEAST:
@@ -609,7 +609,7 @@ public class TheGauntletPlugin extends Plugin
 					return null;
 				}
 
-				highlightColor = Color.GREEN;
+				highlightColor = config.darkBeastOutlineColor();
 				borderWidth = config.demibossOutlineWidth();
 				break;
 			case NpcID.CRYSTALLINE_DRAGON:
@@ -619,7 +619,7 @@ public class TheGauntletPlugin extends Plugin
 					return null;
 				}
 
-				highlightColor = Color.BLUE;
+				highlightColor = config.dragonOutlineColor();
 				borderWidth = config.demibossOutlineWidth();
 				break;
 			default:
