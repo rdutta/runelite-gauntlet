@@ -46,7 +46,7 @@ import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import net.runelite.client.util.Text;
 
 @Singleton
-public class ResourceManager
+class ResourceManager
 {
 	private static final int SHARD_COUNT_BREAK_DOWN = 80;
 
@@ -71,7 +71,7 @@ public class ResourceManager
 
 	private Region region = Region.UNKNOWN;
 
-	public void init()
+	void init()
 	{
 		region = Region.fromId(client.getMapRegions()[0]);
 
@@ -81,7 +81,7 @@ public class ResourceManager
 		}
 	}
 
-	public void reset()
+	void reset()
 	{
 		region = Region.UNKNOWN;
 
@@ -97,7 +97,7 @@ public class ResourceManager
 		infoBoxManager.removeIf(ResourceCounter.class::isInstance);
 	}
 
-	public void parseChatMessage(final String chatMessage)
+	void parseChatMessage(final String chatMessage)
 	{
 		if (!config.resourceTracker() || region == Region.UNKNOWN)
 		{
@@ -117,14 +117,14 @@ public class ResourceManager
 		}
 	}
 
-	public void remove(final ResourceCounter resourceCounter)
+	void remove(final ResourceCounter resourceCounter)
 	{
 		resources.remove(resourceCounter.getResource());
 		eventBus.unregister(resourceCounter);
 		infoBoxManager.removeInfoBox(resourceCounter);
 	}
 
-	public boolean hasAcquiredResource(final ResourceEntity resourceEntity)
+	boolean hasAcquiredResource(final ResourceEntity resourceEntity)
 	{
 		final Resource resource = getResourceFromObjectId(resourceEntity.getGameObject().getId());
 
@@ -136,7 +136,7 @@ public class ResourceManager
 		return getResourceCount(resource) == 0;
 	}
 
-	public int getResourceCount(final Resource resource)
+	private int getResourceCount(final Resource resource)
 	{
 		final ResourceCounter resourceCounter = resourceCounters.get(resource);
 

@@ -10,6 +10,8 @@ Supports both normal and corrupted versions.
 
 ![resource](/images/resource.png)
 
+![minimap](/images/minimap.png)
+
 * Resource infobox counters.
 
 ![counter](/images/counter.png)

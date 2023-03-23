@@ -48,7 +48,7 @@ import net.runelite.client.ui.overlay.OverlayUtil;
 import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 
 @Singleton
-public class MazeOverlay extends Overlay
+class MazeOverlay extends Overlay
 {
 	private final Client client;
 	private final TheGauntletConfig config;
@@ -57,7 +57,7 @@ public class MazeOverlay extends Overlay
 	private final ResourceManager resourceManager;
 
 	@Inject
-	public MazeOverlay(
+	MazeOverlay(
 		final Client client,
 		final TheGauntletPlugin plugin,
 		final TheGauntletConfig config,

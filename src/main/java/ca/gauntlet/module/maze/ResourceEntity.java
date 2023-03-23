@@ -30,38 +30,38 @@ package ca.gauntlet.module.maze;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import javax.annotation.Nullable;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import net.runelite.api.GameObject;
+import net.runelite.api.Point;
 import net.runelite.api.Skill;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.util.ImageUtil;
 
-public class ResourceEntity
+class ResourceEntity
 {
 	private static final int DEFAULT_ICON_SIZE = 14;
 
-	@Getter
+	@Getter(AccessLevel.PACKAGE)
 	private final ResourceType resourceType;
-
-	@Getter
+	@Getter(AccessLevel.PACKAGE)
 	private final GameObject gameObject;
-
 	private final BufferedImage originalIcon;
-
+	@Getter(AccessLevel.PACKAGE)
+	private final BufferedImage minimapIcon;
 	private BufferedImage icon;
-
 	private int iconSize;
 
-	@Getter
-	@Setter
+	@Getter(AccessLevel.PACKAGE)
+	@Setter(AccessLevel.PACKAGE)
 	private Color outlineColor;
-
-	@Getter
-	@Setter
+	@Getter(AccessLevel.PACKAGE)
+	@Setter(AccessLevel.PACKAGE)
 	private Color fillColor;
 
-	public ResourceEntity(
+	ResourceEntity(
 		final ResourceType resourceType,
 		final GameObject gameObject,
 		final SkillIconManager skillIconManager,
@@ -75,22 +75,23 @@ public class ResourceEntity
 		this.outlineColor = outlineColor;
 		this.fillColor = fillColor;
 
-		originalIcon = getOriginalIcon(skillIconManager, resourceType);
+		originalIcon = getOriginalIcon(skillIconManager, resourceType, false);
+		minimapIcon = getOriginalIcon(skillIconManager, resourceType, true);
 	}
 
-	public boolean isResourceType(final ResourceType resourceType)
+	boolean isResourceType(final ResourceType resourceType)
 	{
 		return this.resourceType == resourceType;
 	}
 
-	public void setIconSize(final int iconSize)
+	void setIconSize(final int iconSize)
 	{
 		this.iconSize = iconSize;
 		final int size = iconSize <= 0 ? DEFAULT_ICON_SIZE : iconSize;
 		icon = ImageUtil.resizeImage(originalIcon, size, size);
 	}
 
-	public BufferedImage getIcon()
+	BufferedImage getIcon()
 	{
 		if (icon == null)
 		{
@@ -101,26 +102,40 @@ public class ResourceEntity
 		return icon;
 	}
 
-	private static BufferedImage getOriginalIcon(final SkillIconManager skillIconManager, final ResourceType resourceType)
+	private static BufferedImage getOriginalIcon(final SkillIconManager skillIconManager,
+												 final ResourceType resourceType, final boolean small)
 	{
 		switch (resourceType)
 		{
 			case ORE_DEPOSIT:
-				return skillIconManager.getSkillImage(Skill.MINING);
+				return skillIconManager.getSkillImage(Skill.MINING, small);
 			case PHREN_ROOTS:
-				return skillIconManager.getSkillImage(Skill.WOODCUTTING);
+				return skillIconManager.getSkillImage(Skill.WOODCUTTING, small);
 			case FISHING_SPOT:
-				return skillIconManager.getSkillImage(Skill.FISHING);
+				return skillIconManager.getSkillImage(Skill.FISHING, small);
 			case GRYM_ROOT:
-				return skillIconManager.getSkillImage(Skill.HERBLORE);
+				return skillIconManager.getSkillImage(Skill.HERBLORE, small);
 			case LINUM_TIRINUM:
-				return skillIconManager.getSkillImage(Skill.FARMING);
+				return skillIconManager.getSkillImage(Skill.FARMING, small);
 			default:
 				throw new IllegalArgumentException("Unsupported resource type");
 		}
 	}
 
-	public enum ResourceType
+	@Nullable
+	Point getMinimapPoint()
+	{
+		final Point point = gameObject.getMinimapLocation();
+
+		if (point == null)
+		{
+			return null;
+		}
+
+		return new Point(point.getX() - minimapIcon.getHeight() / 2, point.getY() - minimapIcon.getWidth() / 2);
+	}
+
+	enum ResourceType
 	{
 		ORE_DEPOSIT,
 		PHREN_ROOTS,

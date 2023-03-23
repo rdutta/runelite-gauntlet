@@ -483,9 +483,21 @@ public interface TheGauntletConfig extends Config
 	}
 
 	@ConfigItem(
-		name = "Dynamically remove overlays",
-		description = "Remove the outline for acquired tracked resources.",
+		name = "Minimap overlays",
+		description = "Overlay the minimap with icons for resources.",
 		position = 19,
+		keyName = "minimapResourceOverlay",
+		section = resourceOverlaySection
+	)
+	default boolean minimapResourceOverlay()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+		name = "Dynamically remove overlays",
+		description = "Remove overlays for acquired tracked resources.",
+		position = 20,
 		keyName = "resourceRemoveOutlineOnceAcquired",
 		section = resourceOverlaySection
 	)
@@ -802,6 +814,18 @@ public interface TheGauntletConfig extends Config
 	default Color weakNpcOutlineColor()
 	{
 		return Color.ORANGE;
+	}
+
+	@ConfigItem(
+		name = "Minimap overlays",
+		description = "Overlay the minimap with icons for demi-bosses.",
+		position = 11,
+		keyName = "minimapDemibossOverlay",
+		section = npcsSection
+	)
+	default boolean minimapDemibossOverlay()
+	{
+		return false;
 	}
 
 	// Timer Section

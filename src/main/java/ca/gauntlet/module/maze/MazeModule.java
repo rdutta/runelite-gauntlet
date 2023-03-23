@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.function.Function;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
@@ -23,6 +24,8 @@ import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.NpcDespawned;
+import net.runelite.api.events.NpcSpawned;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.WidgetID;
 import net.runelite.client.callback.ClientThread;
@@ -52,9 +55,11 @@ public class MazeModule implements Module
 		ObjectID.WATER_PUMP_35981, ObjectID.WATER_PUMP_36078
 	);
 
-	@Getter
+	@Getter(AccessLevel.PACKAGE)
 	private final Set<ResourceEntity> resourceEntities = new HashSet<>();
-	@Getter
+	@Getter(AccessLevel.PACKAGE)
+	private final Set<Demiboss> demiBosses = new HashSet<>();
+	@Getter(AccessLevel.PACKAGE)
 	private final Set<GameObject> utilities = new HashSet<>();
 	private final Function<NPC, HighlightedNpc> npcHighlighter = this::highlightNpc;
 
@@ -77,6 +82,8 @@ public class MazeModule implements Module
 	@Inject
 	private MazeOverlay mazeOverlay;
 	@Inject
+	private MinimapOverlay minimapOverlay;
+	@Inject
 	private TimerOverlay timerOverlay;
 
 	@Override
@@ -85,6 +92,7 @@ public class MazeModule implements Module
 		eventBus.register(this);
 		npcOverlayService.registerHighlighter(npcHighlighter);
 		overlayManager.add(mazeOverlay);
+		overlayManager.add(minimapOverlay);
 		overlayManager.add(timerOverlay);
 	}
 
@@ -94,10 +102,12 @@ public class MazeModule implements Module
 		eventBus.unregister(this);
 		npcOverlayService.unregisterHighlighter(npcHighlighter);
 		overlayManager.remove(mazeOverlay);
+		overlayManager.remove(minimapOverlay);
 		overlayManager.remove(timerOverlay);
 		resourceManager.reset();
 		resourceEntities.clear();
 		utilities.clear();
+		demiBosses.clear();
 	}
 
 	@Subscribe
@@ -306,6 +316,44 @@ public class MazeModule implements Module
 		else if (UTILITY_IDS.contains(id))
 		{
 			utilities.remove(gameObject);
+		}
+	}
+
+	@Subscribe
+	private void onNpcSpawned(final NpcSpawned event)
+	{
+		final NPC npc = event.getNpc();
+
+		switch (npc.getId())
+		{
+			case NpcID.CRYSTALLINE_BEAR:
+			case NpcID.CORRUPTED_BEAR:
+			case NpcID.CRYSTALLINE_DARK_BEAST:
+			case NpcID.CORRUPTED_DARK_BEAST:
+			case NpcID.CRYSTALLINE_DRAGON:
+			case NpcID.CORRUPTED_DRAGON:
+				demiBosses.add(new Demiboss(npc, skillIconManager));
+			default:
+				break;
+		}
+	}
+
+	@Subscribe
+	private void onNpcDespawned(final NpcDespawned event)
+	{
+		final NPC npc = event.getNpc();
+
+		switch (npc.getId())
+		{
+			case NpcID.CRYSTALLINE_BEAR:
+			case NpcID.CORRUPTED_BEAR:
+			case NpcID.CRYSTALLINE_DARK_BEAST:
+			case NpcID.CORRUPTED_DARK_BEAST:
+			case NpcID.CRYSTALLINE_DRAGON:
+			case NpcID.CORRUPTED_DRAGON:
+				demiBosses.removeIf(d -> d.getNpc() == npc);
+			default:
+				break;
 		}
 	}
 
