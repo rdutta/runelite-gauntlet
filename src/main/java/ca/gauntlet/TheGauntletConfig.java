@@ -41,9 +41,11 @@ import net.runelite.client.config.ConfigSection;
 import net.runelite.client.config.Range;
 import net.runelite.client.config.Units;
 
-@ConfigGroup("thegauntlet")
+@ConfigGroup(TheGauntletConfig.CONFIG_GROUP)
 public interface TheGauntletConfig extends Config
 {
+	String CONFIG_GROUP = "thegauntlet";
+
 	// Sections
 
 	@ConfigSection(
@@ -93,14 +95,6 @@ public interface TheGauntletConfig extends Config
 		closedByDefault = true
 	)
 	String timerSection = "timer";
-
-	@ConfigSection(
-		name = "Other",
-		description = "Other section.",
-		position = 6,
-		closedByDefault = true
-	)
-	String otherSection = "other";
 
 	// Resource Tracking
 
@@ -836,40 +830,7 @@ public interface TheGauntletConfig extends Config
 		return false;
 	}
 
-	// Other Section
-
-	@ConfigItem(
-		name = "Render distance",
-		description = "Set render distance of various overlays.",
-		position = 0,
-		keyName = "renderDistance",
-		section = otherSection
-	)
-	default RenderDistance renderDistance()
-	{
-		return RenderDistance.FAR;
-	}
-
 	// Constants
-
-	@Getter
-	@AllArgsConstructor
-	enum RenderDistance
-	{
-		SHORT("Short", 2350),
-		MEDIUM("Medium", 3525),
-		FAR("Far", 4700),
-		UNCAPPED("Uncapped", Integer.MAX_VALUE);
-
-		private final String name;
-		private final int distance;
-
-		@Override
-		public String toString()
-		{
-			return name;
-		}
-	}
 
 	@Getter
 	@AllArgsConstructor

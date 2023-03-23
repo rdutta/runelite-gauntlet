@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package ca.gauntlet.entity;
+package ca.gauntlet.module.maze;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;

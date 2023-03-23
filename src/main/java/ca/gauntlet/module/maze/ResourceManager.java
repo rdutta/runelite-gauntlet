@@ -26,11 +26,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package ca.gauntlet.resource;
+package ca.gauntlet.module.maze;
 
 import ca.gauntlet.TheGauntletConfig;
 import ca.gauntlet.TheGauntletPlugin;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -39,8 +38,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-
-import ca.gauntlet.entity.ResourceEntity;
 import net.runelite.api.Client;
 import net.runelite.api.ObjectID;
 import net.runelite.client.eventbus.EventBus;
@@ -136,7 +133,7 @@ public class ResourceManager
 			return false;
 		}
 
-		return getResourceCount(resource) <= 0;
+		return getResourceCount(resource) == 0;
 	}
 
 	public int getResourceCount(final Resource resource)
@@ -145,7 +142,7 @@ public class ResourceManager
 
 		if (resourceCounter == null)
 		{
-			return 0;
+			return -1;
 		}
 
 		return resourceCounter.getCount();

@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package ca.gauntlet.overlay;
+package ca.gauntlet.module.overlay;
 
 import ca.gauntlet.TheGauntletConfig;
 import ca.gauntlet.TheGauntletPlugin;
@@ -179,7 +179,9 @@ public class TimerOverlay extends OverlayPanel
 			.append(ChatColorType.NORMAL)
 			.append(". Total time: ")
 			.append(ChatColorType.HIGHLIGHT)
-			.append(elapsedTotalTime + ".");
+			.append(elapsedTotalTime)
+			.append(ChatColorType.NORMAL)
+			.append(".");
 
 		chatMessageManager.queue(QueuedMessage.builder()
 			.type(ChatMessageType.CONSOLE)

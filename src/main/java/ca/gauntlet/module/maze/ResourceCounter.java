@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package ca.gauntlet.resource;
+package ca.gauntlet.module.maze;
 
 import ca.gauntlet.TheGauntletPlugin;
 import java.awt.Color;
