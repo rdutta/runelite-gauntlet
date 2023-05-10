@@ -297,19 +297,19 @@ class ResourceManager
 			case ObjectID.CORRUPT_DEPOSIT:
 				return Resource.CORRUPTED_ORE;
 
-			case ObjectID.CORRUPT_PHREN_ROOTS:
-				return Resource.PHREN_BARK;
 			case ObjectID.PHREN_ROOTS:
+				return Resource.PHREN_BARK;
+			case ObjectID.CORRUPT_PHREN_ROOTS:
 				return Resource.CORRUPTED_PHREN_BARK;
 
-			case ObjectID.CORRUPT_LINUM_TIRINUM:
-				return Resource.LINUM_TIRINUM;
 			case ObjectID.LINUM_TIRINUM:
+				return Resource.LINUM_TIRINUM;
+			case ObjectID.CORRUPT_LINUM_TIRINUM:
 				return Resource.CORRUPTED_LINUM_TIRINUM;
 
-			case ObjectID.CORRUPT_GRYM_ROOT:
-				return Resource.GRYM_LEAF;
 			case ObjectID.GRYM_ROOT:
+				return Resource.GRYM_LEAF;
+			case ObjectID.CORRUPT_GRYM_ROOT:
 				return Resource.CORRUPTED_GRYM_LEAF;
 
 			case ObjectID.CORRUPT_FISHING_SPOT:
