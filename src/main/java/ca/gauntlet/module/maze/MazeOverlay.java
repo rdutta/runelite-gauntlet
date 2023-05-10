@@ -158,16 +158,16 @@ class MazeOverlay extends Overlay
 			case ObjectID.CORRUPT_DEPOSIT:
 				return config.overlayOreDeposit();
 			case ObjectID.PHREN_ROOTS:
-			case ObjectID.PHREN_ROOTS_36066:
+			case ObjectID.CORRUPT_PHREN_ROOTS:
 				return config.overlayPhrenRoots();
 			case ObjectID.LINUM_TIRINUM:
-			case ObjectID.LINUM_TIRINUM_36072:
+			case ObjectID.CORRUPT_LINUM_TIRINUM:
 				return config.overlayLinumTirinum();
 			case ObjectID.GRYM_ROOT:
-			case ObjectID.GRYM_ROOT_36070:
+			case ObjectID.CORRUPT_GRYM_ROOT:
 				return config.overlayGrymRoot();
 			case ObjectID.FISHING_SPOT_36068:
-			case ObjectID.FISHING_SPOT_35971:
+			case ObjectID.CORRUPT_FISHING_SPOT:
 				return config.overlayFishingSpot();
 			default:
 				return false;
