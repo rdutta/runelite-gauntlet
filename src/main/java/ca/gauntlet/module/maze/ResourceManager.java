@@ -50,7 +50,7 @@ class ResourceManager
 {
 	private static final int SHARD_COUNT_BREAK_DOWN = 80;
 
-	private static final Pattern PATTERN_RESOURCE_DROP = Pattern.compile("^.+ drop: ((?<quantity>\\d+) x )?(?<name>.+)$");
+	private static final Pattern PATTERN_RESOURCE_DROP = Pattern.compile("^.+ drop:\\s+((?<quantity>\\d+) x )?(?<name>.+)$");
 
 	private final Set<Resource> resources = new HashSet<>();
 
