@@ -184,8 +184,14 @@ class ResourceManager
 	{
 		if (parsedMessage.startsWith("break down", 4))
 		{
-			processResource(region == Region.CORRUPTED ?
-				Resource.CORRUPTED_SHARDS : Resource.CRYSTAL_SHARDS, SHARD_COUNT_BREAK_DOWN);
+			final Resource resource = region == Region.CORRUPTED ?
+				Resource.CORRUPTED_SHARDS : Resource.CRYSTAL_SHARDS;
+
+			if (resources.contains(resource))
+			{
+				processResource(resource, SHARD_COUNT_BREAK_DOWN);
+			}
+
 			return;
 		}
 

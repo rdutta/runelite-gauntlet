@@ -23,8 +23,8 @@ dependencies {
     testImplementation group: 'net.runelite', name: 'jshell', version: runeLiteVersion
 }
 
-group = 'com.gauntlet'
-version = '1.6'
+group = 'ca.gauntlet'
+version = '1.6.1'
 sourceCompatibility = '1.8'
 
 tasks.withType(JavaCompile) {
