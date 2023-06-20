@@ -51,18 +51,18 @@ class ResourceCounter extends InfoBox
 	private int count;
 	private String text;
 
-	@Inject
 	private TheGauntletConfig config;
 
 
 	ResourceCounter(final Resource resource, final BufferedImage bufferedImage, final int count,
-					final TheGauntletPlugin plugin, final ResourceManager resourceManager)
+					final TheGauntletConfig config, final TheGauntletPlugin plugin, final ResourceManager resourceManager)
 	{
 		super(bufferedImage, plugin);
 
 		this.resource = resource;
 		this.resourceManager = resourceManager;
 		this.count = count;
+		this.config = config;
 		text = String.valueOf(count);
 
 		setPriority(getPriority(resource));
@@ -145,8 +145,10 @@ class ResourceCounter extends InfoBox
 				return config.resourceShard();
 			case RAW_PADDLEFISH:
 				return config.resourcePaddlefish();
+			case WEAPON_FRAME:
+				return config.resourceFrame();
 			default:
-				return 0;
+				return 1000; //Do not turn green
 		}
 	}
 }

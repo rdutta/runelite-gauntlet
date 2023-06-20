@@ -233,6 +233,7 @@ class ResourceManager
 				resource,
 				itemManager.getImage(resource.getItemId()),
 				count,
+				config,
 				plugin,
 				this
 			);
