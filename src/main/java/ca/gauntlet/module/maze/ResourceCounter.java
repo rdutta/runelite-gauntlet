@@ -27,15 +27,20 @@
 
 package ca.gauntlet.module.maze;
 
+import ca.gauntlet.TheGauntletConfig;
 import ca.gauntlet.TheGauntletPlugin;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.ui.overlay.infobox.InfoBox;
 import net.runelite.client.ui.overlay.infobox.InfoBoxPriority;
 
+import javax.inject.Inject;
+
+@Slf4j
 class ResourceCounter extends InfoBox
 {
 	@Getter(AccessLevel.PACKAGE)
@@ -45,6 +50,10 @@ class ResourceCounter extends InfoBox
 	@Getter(AccessLevel.PACKAGE)
 	private int count;
 	private String text;
+
+	@Inject
+	private TheGauntletConfig config;
+
 
 	ResourceCounter(final Resource resource, final BufferedImage bufferedImage, final int count,
 					final TheGauntletPlugin plugin, final ResourceManager resourceManager)
@@ -68,6 +77,9 @@ class ResourceCounter extends InfoBox
 	@Override
 	public Color getTextColor()
 	{
+		if (count >= resourceTarget() && config.trackingStyle() == TheGauntletConfig.TrackingStyle.UPWARD) {
+			return Color.GREEN;
+		}
 		return Color.WHITE;
 	}
 
@@ -111,6 +123,30 @@ class ResourceCounter extends InfoBox
 				return InfoBoxPriority.NONE;
 			default:
 				return InfoBoxPriority.LOW;
+		}
+	}
+	private int resourceTarget() {
+		switch (resource)
+		{
+			case CRYSTAL_ORE:
+			case CORRUPTED_ORE:
+				return config.resourceOre();
+			case PHREN_BARK:
+			case CORRUPTED_PHREN_BARK:
+				return config.resourceBark();
+			case LINUM_TIRINUM:
+			case CORRUPTED_LINUM_TIRINUM:
+				return config.resourceTirinum();
+			case GRYM_LEAF:
+			case CORRUPTED_GRYM_LEAF:
+				return config.resourceGrym();
+			case CRYSTAL_SHARDS:
+			case CORRUPTED_SHARDS:
+				return config.resourceShard();
+			case RAW_PADDLEFISH:
+				return config.resourcePaddlefish();
+			default:
+				return 0;
 		}
 	}
 }

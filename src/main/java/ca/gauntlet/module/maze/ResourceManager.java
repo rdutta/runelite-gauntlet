@@ -29,6 +29,7 @@
 package ca.gauntlet.module.maze;
 
 import ca.gauntlet.TheGauntletConfig;
+import ca.gauntlet.TheGauntletConfig.TrackingStyle;
 import ca.gauntlet.TheGauntletPlugin;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,6 +39,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.ObjectID;
 import net.runelite.client.eventbus.EventBus;
@@ -46,6 +49,7 @@ import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import net.runelite.client.util.Text;
 
 @Singleton
+@Slf4j
 class ResourceManager
 {
 	private static final int SHARD_COUNT_BREAK_DOWN = 80;
@@ -99,6 +103,7 @@ class ResourceManager
 
 	void parseChatMessage(final String chatMessage)
 	{
+		log.debug("Parsing chat message: " + chatMessage);
 		if (!config.resourceTracker() || region == Region.UNKNOWN)
 		{
 			return;
@@ -150,12 +155,14 @@ class ResourceManager
 
 	private void processNpcResource(final String parsedMessage)
 	{
+		log.debug("processing npc resource");
 		final String noTagsMessage = Text.removeTags(parsedMessage);
 
 		final Matcher matcher = PATTERN_RESOURCE_DROP.matcher(noTagsMessage);
 
 		if (!matcher.matches())
 		{
+			log.debug("Failed to match resource");
 			return;
 		}
 
@@ -163,6 +170,7 @@ class ResourceManager
 
 		if (name == null)
 		{
+			log.debug("Name is null");
 			return;
 		}
 
@@ -170,6 +178,7 @@ class ResourceManager
 
 		if (resource == null || !resources.contains(resource))
 		{
+			log.debug("resource is null or untracked");
 			return;
 		}
 
@@ -177,6 +186,7 @@ class ResourceManager
 
 		final int count = quantity != null ? Integer.parseInt(quantity) : 1;
 
+		log.debug("About to process resource");
 		processResource(resource, count);
 	}
 
@@ -216,6 +226,7 @@ class ResourceManager
 
 	private void processResource(final Resource resource, final int count)
 	{
+		log.debug("Processing Resource: " + "RESOURCE: " + resource.toString() + " COUNT: " + count);
 		if (resources.add(resource))
 		{
 			final ResourceCounter resourceCounter = new ResourceCounter(
@@ -232,7 +243,12 @@ class ResourceManager
 		}
 		else
 		{
-			eventBus.post(new ResourceEvent(resource, count * -1));
+			if (config.trackingStyle() == TrackingStyle.DOWNWARD) {
+				eventBus.post(new ResourceEvent(resource, count * -1));
+			}
+			if (config.trackingStyle() == TrackingStyle.UPWARD) {
+				eventBus.post(new ResourceEvent(resource, count));
+			}
 		}
 	}
 
@@ -251,46 +267,47 @@ class ResourceManager
 		final boolean orb = config.resourceOrb();
 
 		final boolean corrupted = region == Region.CORRUPTED;
+		final boolean downward = config.trackingStyle() == TrackingStyle.DOWNWARD;
 
 		if (oreCount > 0)
 		{
-			processResource(corrupted ? Resource.CORRUPTED_ORE : Resource.CRYSTAL_ORE, oreCount);
+			processResource(corrupted ? Resource.CORRUPTED_ORE : Resource.CRYSTAL_ORE, downward ? oreCount : 0);
 		}
 		if (barkCount > 0)
 		{
-			processResource(corrupted ? Resource.CORRUPTED_PHREN_BARK : Resource.PHREN_BARK, barkCount);
+			processResource(corrupted ? Resource.CORRUPTED_PHREN_BARK : Resource.PHREN_BARK, downward ? barkCount : 0);
 		}
 		if (tirinumCount > 0)
 		{
-			processResource(corrupted ? Resource.CORRUPTED_LINUM_TIRINUM : Resource.LINUM_TIRINUM, tirinumCount);
+			processResource(corrupted ? Resource.CORRUPTED_LINUM_TIRINUM : Resource.LINUM_TIRINUM, downward ? tirinumCount : 0);
 		}
 		if (grymCount > 0)
 		{
-			processResource(corrupted ? Resource.CORRUPTED_GRYM_LEAF : Resource.GRYM_LEAF, grymCount);
+			processResource(corrupted ? Resource.CORRUPTED_GRYM_LEAF : Resource.GRYM_LEAF, downward ? grymCount : 0);
 		}
 		if (frameCount > 0)
 		{
-			processResource(corrupted ? Resource.CORRUPTED_WEAPON_FRAME : Resource.WEAPON_FRAME, frameCount);
+			processResource(corrupted ? Resource.CORRUPTED_WEAPON_FRAME : Resource.WEAPON_FRAME, downward ? frameCount : 0);
 		}
 		if (fishCount > 0)
 		{
-			processResource(Resource.RAW_PADDLEFISH, fishCount);
+			processResource(Resource.RAW_PADDLEFISH, downward ? fishCount : 0);
 		}
 		if (shardCount > 0)
 		{
-			processResource(corrupted ? Resource.CORRUPTED_SHARDS : Resource.CRYSTAL_SHARDS, shardCount);
+			processResource(corrupted ? Resource.CORRUPTED_SHARDS : Resource.CRYSTAL_SHARDS, downward ? shardCount : 0);
 		}
 		if (bowstring)
 		{
-			processResource(corrupted ? Resource.CORRUPTED_BOWSTRING : Resource.CRYSTALLINE_BOWSTRING, 1);
+			processResource(corrupted ? Resource.CORRUPTED_BOWSTRING : Resource.CRYSTALLINE_BOWSTRING, downward ? 1 : 0);
 		}
 		if (spike)
 		{
-			processResource(corrupted ? Resource.CORRUPTED_SPIKE : Resource.CRYSTAL_SPIKE, 1);
+			processResource(corrupted ? Resource.CORRUPTED_SPIKE : Resource.CRYSTAL_SPIKE, downward ? 1 : 0);
 		}
 		if (orb)
 		{
-			processResource(corrupted ? Resource.CORRUPTED_ORB : Resource.CRYSTAL_ORB, 1);
+			processResource(corrupted ? Resource.CORRUPTED_ORB : Resource.CRYSTAL_ORB, downward ? 1 : 0);
 		}
 	}
 
