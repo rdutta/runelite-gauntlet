@@ -103,7 +103,6 @@ class ResourceManager
 
 	void parseChatMessage(final String chatMessage)
 	{
-		log.debug("Parsing chat message: " + chatMessage);
 		if (!config.resourceTracker() || region == Region.UNKNOWN)
 		{
 			return;
@@ -155,14 +154,12 @@ class ResourceManager
 
 	private void processNpcResource(final String parsedMessage)
 	{
-		log.debug("processing npc resource");
 		final String noTagsMessage = Text.removeTags(parsedMessage);
 
 		final Matcher matcher = PATTERN_RESOURCE_DROP.matcher(noTagsMessage);
 
 		if (!matcher.matches())
 		{
-			log.debug("Failed to match resource");
 			return;
 		}
 
@@ -170,7 +167,6 @@ class ResourceManager
 
 		if (name == null)
 		{
-			log.debug("Name is null");
 			return;
 		}
 
@@ -178,7 +174,6 @@ class ResourceManager
 
 		if (resource == null || !resources.contains(resource))
 		{
-			log.debug("resource is null or untracked");
 			return;
 		}
 
@@ -186,7 +181,6 @@ class ResourceManager
 
 		final int count = quantity != null ? Integer.parseInt(quantity) : 1;
 
-		log.debug("About to process resource");
 		processResource(resource, count);
 	}
 
@@ -226,7 +220,6 @@ class ResourceManager
 
 	private void processResource(final Resource resource, final int count)
 	{
-		log.debug("Processing Resource: " + "RESOURCE: " + resource.toString() + " COUNT: " + count);
 		if (resources.add(resource))
 		{
 			final ResourceCounter resourceCounter = new ResourceCounter(
