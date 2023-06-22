@@ -27,42 +27,38 @@
 
 package ca.gauntlet.module.maze;
 
-import ca.gauntlet.TheGauntletConfig;
 import ca.gauntlet.TheGauntletPlugin;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.ui.overlay.infobox.InfoBox;
 import net.runelite.client.ui.overlay.infobox.InfoBoxPriority;
 
-import javax.inject.Inject;
-
-@Slf4j
 class ResourceCounter extends InfoBox
 {
 	@Getter(AccessLevel.PACKAGE)
 	private final Resource resource;
 	private final ResourceManager resourceManager;
-
+	private final boolean decrement;
 	@Getter(AccessLevel.PACKAGE)
 	private int count;
 	private String text;
 
-	private TheGauntletConfig config;
-
-
-	ResourceCounter(final Resource resource, final BufferedImage bufferedImage, final int count,
-					final TheGauntletConfig config, final TheGauntletPlugin plugin, final ResourceManager resourceManager)
+	ResourceCounter(final Resource resource,
+					final TheGauntletPlugin plugin,
+					final BufferedImage bufferedImage,
+					final ResourceManager resourceManager,
+					final int count,
+					final boolean decrement)
 	{
 		super(bufferedImage, plugin);
 
 		this.resource = resource;
 		this.resourceManager = resourceManager;
 		this.count = count;
-		this.config = config;
+		this.decrement = decrement;
 		text = String.valueOf(count);
 
 		setPriority(getPriority(resource));
@@ -77,9 +73,6 @@ class ResourceCounter extends InfoBox
 	@Override
 	public Color getTextColor()
 	{
-		if (count >= resourceTarget() && config.trackingStyle() == TheGauntletConfig.TrackingStyle.UPWARD) {
-			return Color.GREEN;
-		}
 		return Color.WHITE;
 	}
 
@@ -91,14 +84,19 @@ class ResourceCounter extends InfoBox
 			return;
 		}
 
-		count = Math.max(0, count + event.getCount());
-
-		if (count == 0)
+		if (decrement)
 		{
-			resourceManager.remove(this);
+			count = Math.max(0, count - event.getCount());
+			text = String.valueOf(count);
+
+			if (count == 0)
+			{
+				resourceManager.remove(this);
+			}
 		}
 		else
 		{
+			count += event.getCount();
 			text = String.valueOf(count);
 		}
 	}
@@ -123,32 +121,6 @@ class ResourceCounter extends InfoBox
 				return InfoBoxPriority.NONE;
 			default:
 				return InfoBoxPriority.LOW;
-		}
-	}
-	private int resourceTarget() {
-		switch (resource)
-		{
-			case CRYSTAL_ORE:
-			case CORRUPTED_ORE:
-				return config.resourceOre();
-			case PHREN_BARK:
-			case CORRUPTED_PHREN_BARK:
-				return config.resourceBark();
-			case LINUM_TIRINUM:
-			case CORRUPTED_LINUM_TIRINUM:
-				return config.resourceTirinum();
-			case GRYM_LEAF:
-			case CORRUPTED_GRYM_LEAF:
-				return config.resourceGrym();
-			case CRYSTAL_SHARDS:
-			case CORRUPTED_SHARDS:
-				return config.resourceShard();
-			case RAW_PADDLEFISH:
-				return config.resourcePaddlefish();
-			case WEAPON_FRAME:
-				return config.resourceFrame();
-			default:
-				return 1000; //Do not turn green
 		}
 	}
 }

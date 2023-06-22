@@ -111,13 +111,17 @@ public interface TheGauntletConfig extends Config
 	}
 
 	@ConfigItem(
-			name = "Tracking Style",
-			description = "Choose whether to count resources upwards or downwards",
-			position = 1,
-			keyName = "trackingStyle",
-			section = resourceTrackingSection
+		name = "Tracking Mode",
+		description = "Increment or decrement resource counters." +
+			"Disable a counter by setting value to 0.",
+		position = 1,
+		keyName = "resourceTrackingMode",
+		section = resourceTrackingSection
 	)
-	default TrackingStyle trackingStyle() {return TrackingStyle.DOWNWARD;}
+	default TrackingMode resourceTrackingMode()
+	{
+		return TrackingMode.DECREMENT;
+	}
 
 	@ConfigItem(
 		name = "Ore",
@@ -505,7 +509,8 @@ public interface TheGauntletConfig extends Config
 
 	@ConfigItem(
 		name = "Dynamically remove overlays",
-		description = "Remove overlays for acquired tracked resources.",
+		description = "Remove overlays for acquired tracked resources." +
+			"<br>Disabled if incrementally tracking resources.",
 		position = 20,
 		keyName = "resourceRemoveOutlineOnceAcquired",
 		section = resourceOverlaySection
@@ -884,15 +889,18 @@ public interface TheGauntletConfig extends Config
 
 	@Getter
 	@AllArgsConstructor
-	enum TrackingStyle
+	enum TrackingMode
 	{
-		UPWARD("Upward"),
-		DOWNWARD("Downward");
+		DECREMENT("Decrement"),
+		INCREMENT("Increment");
 
 		private final String name;
 
 		@Override
-		public String toString(){ return name;}
+		public String toString()
+		{
+			return name;
+		}
 	}
 
 }
