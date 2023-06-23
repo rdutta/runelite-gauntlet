@@ -208,6 +208,7 @@ public class MazeModule implements Module
 					}
 					break;
 				case "resourceTracker":
+				case "resourceTrackingMode":
 					resourceManager.reset();
 					resourceManager.init();
 					break;

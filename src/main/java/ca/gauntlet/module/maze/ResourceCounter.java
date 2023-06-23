@@ -41,19 +41,24 @@ class ResourceCounter extends InfoBox
 	@Getter(AccessLevel.PACKAGE)
 	private final Resource resource;
 	private final ResourceManager resourceManager;
-
+	private final boolean decrement;
 	@Getter(AccessLevel.PACKAGE)
 	private int count;
 	private String text;
 
-	ResourceCounter(final Resource resource, final BufferedImage bufferedImage, final int count,
-					final TheGauntletPlugin plugin, final ResourceManager resourceManager)
+	ResourceCounter(final Resource resource,
+					final TheGauntletPlugin plugin,
+					final BufferedImage bufferedImage,
+					final ResourceManager resourceManager,
+					final int count,
+					final boolean decrement)
 	{
 		super(bufferedImage, plugin);
 
 		this.resource = resource;
 		this.resourceManager = resourceManager;
 		this.count = count;
+		this.decrement = decrement;
 		text = String.valueOf(count);
 
 		setPriority(getPriority(resource));
@@ -79,14 +84,19 @@ class ResourceCounter extends InfoBox
 			return;
 		}
 
-		count = Math.max(0, count + event.getCount());
-
-		if (count == 0)
+		if (decrement)
 		{
-			resourceManager.remove(this);
+			count = Math.max(0, count - event.getCount());
+			text = String.valueOf(count);
+
+			if (count == 0)
+			{
+				resourceManager.remove(this);
+			}
 		}
 		else
 		{
+			count += event.getCount();
 			text = String.valueOf(count);
 		}
 	}

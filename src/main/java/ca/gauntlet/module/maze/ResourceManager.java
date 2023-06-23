@@ -29,6 +29,7 @@
 package ca.gauntlet.module.maze;
 
 import ca.gauntlet.TheGauntletConfig;
+import ca.gauntlet.TheGauntletConfig.TrackingMode;
 import ca.gauntlet.TheGauntletPlugin;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,7 +55,7 @@ class ResourceManager
 
 	private final Set<Resource> resources = new HashSet<>();
 
-	private final HashMap<Resource, ResourceCounter> resourceCounters = new HashMap<>();
+	private final Map<Resource, ResourceCounter> resourceCounters = new HashMap<>();
 
 	@Inject
 	private Client client;
@@ -75,7 +76,9 @@ class ResourceManager
 	{
 		region = Region.fromId(client.getMapRegions()[0]);
 
-		if (config.resourceTracker() && region != Region.UNKNOWN)
+		if (config.resourceTracker() &&
+			region != Region.UNKNOWN &&
+			config.resourceTrackingMode() == TrackingMode.DECREMENT)
 		{
 			createInfoBoxCountersFromConfig();
 		}
@@ -126,6 +129,13 @@ class ResourceManager
 
 	boolean hasAcquiredResource(final ResourceEntity resourceEntity)
 	{
+		if (!config.resourceTracker() ||
+			!config.resourceRemoveOutlineOnceAcquired() ||
+			config.resourceTrackingMode() == TrackingMode.INCREMENT)
+		{
+			return false;
+		}
+
 		final Resource resource = getResourceFromObjectId(resourceEntity.getGameObject().getId());
 
 		if (resource == null)
@@ -133,19 +143,14 @@ class ResourceManager
 			return false;
 		}
 
-		return getResourceCount(resource) == 0;
-	}
-
-	private int getResourceCount(final Resource resource)
-	{
 		final ResourceCounter resourceCounter = resourceCounters.get(resource);
 
 		if (resourceCounter == null)
 		{
-			return -1;
+			return false;
 		}
 
-		return resourceCounter.getCount();
+		return resourceCounter.getCount() == 0;
 	}
 
 	private void processNpcResource(final String parsedMessage)
@@ -168,7 +173,7 @@ class ResourceManager
 
 		final Resource resource = Resource.fromName(name, region == Region.CORRUPTED);
 
-		if (resource == null || !resources.contains(resource))
+		if (resource == null || !isTrackingResource(resource))
 		{
 			return;
 		}
@@ -187,7 +192,7 @@ class ResourceManager
 			final Resource resource = region == Region.CORRUPTED ?
 				Resource.CORRUPTED_SHARDS : Resource.CRYSTAL_SHARDS;
 
-			if (resources.contains(resource))
+			if (isTrackingResource(resource))
 			{
 				processResource(resource, SHARD_COUNT_BREAK_DOWN);
 			}
@@ -204,14 +209,12 @@ class ResourceManager
 
 		final Resource resource = mapping.keySet().iterator().next();
 
-		if (!resources.contains(resource))
+		if (!isTrackingResource(resource))
 		{
 			return;
 		}
 
-		final int count = mapping.get(resource);
-
-		processResource(resource, count);
+		processResource(resource, mapping.get(resource));
 	}
 
 	private void processResource(final Resource resource, final int count)
@@ -220,10 +223,11 @@ class ResourceManager
 		{
 			final ResourceCounter resourceCounter = new ResourceCounter(
 				resource,
-				itemManager.getImage(resource.getItemId()),
-				count,
 				plugin,
-				this
+				itemManager.getImage(resource.getItemId()),
+				this,
+				count,
+				config.resourceTrackingMode() == TrackingMode.DECREMENT
 			);
 
 			eventBus.register(resourceCounter);
@@ -232,7 +236,7 @@ class ResourceManager
 		}
 		else
 		{
-			eventBus.post(new ResourceEvent(resource, count * -1));
+			eventBus.post(new ResourceEvent(resource, count));
 		}
 	}
 
@@ -325,6 +329,56 @@ class ResourceManager
 			default:
 				return null;
 		}
+	}
+
+	private int getResourceTargetCount(final Resource resource)
+	{
+		switch (resource)
+		{
+			case CRYSTAL_ORE:
+			case CORRUPTED_ORE:
+				return config.resourceOre();
+			case PHREN_BARK:
+			case CORRUPTED_PHREN_BARK:
+				return config.resourceBark();
+			case LINUM_TIRINUM:
+			case CORRUPTED_LINUM_TIRINUM:
+				return config.resourceTirinum();
+			case GRYM_LEAF:
+			case CORRUPTED_GRYM_LEAF:
+				return config.resourceGrym();
+			case CRYSTAL_SHARDS:
+			case CORRUPTED_SHARDS:
+				return config.resourceShard();
+			case RAW_PADDLEFISH:
+				return config.resourcePaddlefish();
+			case WEAPON_FRAME:
+			case CORRUPTED_WEAPON_FRAME:
+				return config.resourceFrame();
+			case CRYSTALLINE_BOWSTRING:
+			case CORRUPTED_BOWSTRING:
+				return config.resourceBowstring() ? 1 : 0;
+			case CRYSTAL_SPIKE:
+			case CORRUPTED_SPIKE:
+				return config.resourceSpike() ? 1 : 0;
+			case CRYSTAL_ORB:
+			case CORRUPTED_ORB:
+				return config.resourceOrb() ? 1 : 0;
+			case TELEPORT_CRYSTAL:
+			case CORRUPTED_TELEPORT_CRYSTAL:
+			default:
+				return 0;
+		}
+	}
+
+	private boolean isTrackingResource(final Resource resource)
+	{
+		if (config.resourceTrackingMode() == TrackingMode.DECREMENT)
+		{
+			return resources.contains(resource);
+		}
+
+		return getResourceTargetCount(resource) > 0;
 	}
 
 	private enum Region

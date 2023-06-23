@@ -111,9 +111,22 @@ public interface TheGauntletConfig extends Config
 	}
 
 	@ConfigItem(
+		name = "Tracking Mode",
+		description = "Increment or decrement resource counters." +
+			"<br>Disable a counter by setting value to 0.",
+		position = 1,
+		keyName = "resourceTrackingMode",
+		section = resourceTrackingSection
+	)
+	default TrackingMode resourceTrackingMode()
+	{
+		return TrackingMode.DECREMENT;
+	}
+
+	@ConfigItem(
 		name = "Ore",
 		description = "The desired number of ores to acquire.",
-		position = 1,
+		position = 2,
 		keyName = "resourceOre",
 		section = resourceTrackingSection
 	)
@@ -125,7 +138,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Phren bark",
 		description = "The desired number of phren barks to acquire.",
-		position = 2,
+		position = 3,
 		keyName = "resourceBark",
 		section = resourceTrackingSection
 	)
@@ -137,7 +150,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Linum tirinum",
 		description = "The desired number of linum tirinums to acquire.",
-		position = 3,
+		position = 4,
 		keyName = "resourceTirinum",
 		section = resourceTrackingSection
 	)
@@ -149,7 +162,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Grym leaf",
 		description = "The desired number of grym leaves to acquire.",
-		position = 4,
+		position = 5,
 		keyName = "resourceGrym",
 		section = resourceTrackingSection
 	)
@@ -161,7 +174,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Weapon frames",
 		description = "The desired number of weapon frames to acquire.",
-		position = 5,
+		position = 6,
 		keyName = "resourceFrame",
 		section = resourceTrackingSection
 	)
@@ -173,7 +186,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Paddlefish",
 		description = "The desired number of paddlefish to acquire.",
-		position = 6,
+		position = 7,
 		keyName = "resourcePaddlefish",
 		section = resourceTrackingSection
 	)
@@ -185,7 +198,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Crystal shards",
 		description = "The desired number of crystal shards to acquire.",
-		position = 7,
+		position = 8,
 		keyName = "resourceShard",
 		section = resourceTrackingSection
 	)
@@ -197,7 +210,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Bowstring",
 		description = "Whether or not to acquire the crystalline or corrupted bowstring.",
-		position = 8,
+		position = 9,
 		keyName = "resourceBowstring",
 		section = resourceTrackingSection
 	)
@@ -209,7 +222,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Spike",
 		description = "Whether or not to acquire the crystal or corrupted spike.",
-		position = 9,
+		position = 10,
 		keyName = "resourceSpike",
 		section = resourceTrackingSection
 	)
@@ -221,7 +234,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Orb",
 		description = "Whether or not to acquire the crystal or corrupted orb.",
-		position = 10,
+		position = 11,
 		keyName = "resourceOrb",
 		section = resourceTrackingSection
 	)
@@ -496,7 +509,8 @@ public interface TheGauntletConfig extends Config
 
 	@ConfigItem(
 		name = "Dynamically remove overlays",
-		description = "Remove overlays for acquired tracked resources.",
+		description = "Remove overlays for acquired tracked resources." +
+			"<br>Disabled if incrementally tracking resources.",
 		position = 20,
 		keyName = "resourceRemoveOutlineOnceAcquired",
 		section = resourceOverlaySection
@@ -863,6 +877,22 @@ public interface TheGauntletConfig extends Config
 		OFF("Off"),
 		ON("On"),
 		TRUE_TILE("True Tile");
+
+		private final String name;
+
+		@Override
+		public String toString()
+		{
+			return name;
+		}
+	}
+
+	@Getter
+	@AllArgsConstructor
+	enum TrackingMode
+	{
+		DECREMENT("Decrement"),
+		INCREMENT("Increment");
 
 		private final String name;
 

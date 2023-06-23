@@ -75,32 +75,28 @@ class MinimapOverlay extends Overlay
 		}
 	}
 
-	private void renderMinimapResourceIcons(final Graphics2D graphics2D, final Collection<ResourceEntity> resources)
+	private void renderMinimapResourceIcons(final Graphics2D graphics2D, final Collection<ResourceEntity> resourceEntities)
 	{
-		if (resources.isEmpty())
+		if (resourceEntities.isEmpty())
 		{
 			return;
 		}
 
-		for (final ResourceEntity resource : resources)
+		for (final ResourceEntity resourceEntity : resourceEntities)
 		{
-			if (config.resourceTracker() &&
-				config.resourceRemoveOutlineOnceAcquired() &&
-				resourceManager.hasAcquiredResource(resource))
+			if (resourceManager.hasAcquiredResource(resourceEntity))
 			{
 				continue;
 			}
 
-			final Point point = resource.getMinimapPoint();
+			final Point point = resourceEntity.getMinimapPoint();
 
 			if (point == null)
 			{
 				continue;
 			}
 
-			OverlayUtil.renderImageLocation(graphics2D, point, resource.getMinimapIcon());
+			OverlayUtil.renderImageLocation(graphics2D, point, resourceEntity.getMinimapIcon());
 		}
 	}
-
-
 }

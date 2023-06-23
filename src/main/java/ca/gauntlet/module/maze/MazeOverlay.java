@@ -101,9 +101,7 @@ class MazeOverlay extends Overlay
 				continue;
 			}
 
-			if (config.resourceTracker() &&
-				config.resourceRemoveOutlineOnceAcquired() &&
-				resourceManager.hasAcquiredResource(resourceEntity))
+			if (resourceManager.hasAcquiredResource(resourceEntity))
 			{
 				continue;
 			}
