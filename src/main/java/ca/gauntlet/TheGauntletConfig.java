@@ -113,7 +113,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Tracking Mode",
 		description = "Increment or decrement resource counters." +
-			"Disable a counter by setting value to 0.",
+			"<br>Disable a counter by setting value to 0.",
 		position = 1,
 		keyName = "resourceTrackingMode",
 		section = resourceTrackingSection
