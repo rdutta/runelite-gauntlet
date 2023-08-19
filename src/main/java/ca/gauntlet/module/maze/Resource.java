@@ -1,7 +1,7 @@
 /*
  * BSD 2-Clause License
  *
- * Copyright (c) 2020, dutta64 <https://github.com/dutta64>
+ * Copyright (c) 2023, rdutta <https://github.com/rdutta>
  * Copyright (c) 2020, Anthony Alves
  * All rights reserved.
  *
@@ -28,15 +28,14 @@
 
 package ca.gauntlet.module.maze;
 
-import java.util.Collections;
-import java.util.Map;
+import java.util.AbstractMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.AccessLevel;
 import lombok.Getter;
 import net.runelite.api.ItemID;
 
-enum Resource
+public enum Resource
 {
 	TELEPORT_CRYSTAL("Teleport crystal", ItemID.TELEPORT_CRYSTAL, false),
 	CORRUPTED_TELEPORT_CRYSTAL("Corrupted teleport crystal", ItemID.CORRUPTED_TELEPORT_CRYSTAL, true),
@@ -72,16 +71,10 @@ enum Resource
 
 	private static final Resource[] VALUES = Resource.values();
 
-	@Getter(AccessLevel.PACKAGE)
 	private final String name;
-
-	@Getter(AccessLevel.PACKAGE)
-	private final Pattern pattern;
-
 	@Getter(AccessLevel.PACKAGE)
 	private final int itemId;
-
-	@Getter(AccessLevel.PACKAGE)
+	private final Pattern pattern;
 	private final boolean corrupted;
 
 	Resource(final String name, final int itemId, final String pattern, final boolean corrupted)
@@ -111,7 +104,7 @@ enum Resource
 		return null;
 	}
 
-	static Map<Resource, Integer> fromPattern(final String pattern, final boolean corrupted)
+	static AbstractMap.Entry<Resource, Integer> fromPattern(final String pattern, final boolean corrupted)
 	{
 		for (final Resource resource : VALUES)
 		{
@@ -130,9 +123,15 @@ enum Resource
 
 			final int itemCount = matcher.groupCount() == 1 ? Integer.parseInt(matcher.group(1)) : 1;
 
-			return Collections.singletonMap(resource, itemCount);
+			return new AbstractMap.SimpleImmutableEntry<>(resource, itemCount);
 		}
 
 		return null;
+	}
+
+	@Override
+	public String toString()
+	{
+		return this.name;
 	}
 }

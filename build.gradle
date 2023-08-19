@@ -24,7 +24,7 @@ dependencies {
 }
 
 group = 'ca.gauntlet'
-version = '1.7'
+version = '1.8'
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'

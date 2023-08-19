@@ -1,7 +1,7 @@
 /*
  * BSD 2-Clause License
  *
- * Copyright (c) 2020, dutta64 <https://github.com/dutta64>
+ * Copyright (c) 2023, rdutta <https://github.com/rdutta>
  * Copyright (c) 2019, ganom <https://github.com/Ganom>
  * All rights reserved.
  *
@@ -28,24 +28,24 @@
 
 package ca.gauntlet.module.maze;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import javax.annotation.Nullable;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NonNull;
 import net.runelite.api.GameObject;
+import net.runelite.api.ObjectID;
 import net.runelite.api.Point;
 import net.runelite.api.Skill;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.util.ImageUtil;
 
-class ResourceEntity
+class ResourceGameObject
 {
 	private static final int DEFAULT_ICON_SIZE = 14;
 
 	@Getter(AccessLevel.PACKAGE)
-	private final ResourceType resourceType;
+	private final Resource resource;
 	@Getter(AccessLevel.PACKAGE)
 	private final GameObject gameObject;
 	private final BufferedImage originalIcon;
@@ -54,34 +54,17 @@ class ResourceEntity
 	private BufferedImage icon;
 	private int iconSize;
 
-	@Getter(AccessLevel.PACKAGE)
-	@Setter(AccessLevel.PACKAGE)
-	private Color outlineColor;
-	@Getter(AccessLevel.PACKAGE)
-	@Setter(AccessLevel.PACKAGE)
-	private Color fillColor;
-
-	ResourceEntity(
-		final ResourceType resourceType,
-		final GameObject gameObject,
-		final SkillIconManager skillIconManager,
-		final int iconSize,
-		final Color outlineColor,
-		final Color fillColor)
+	ResourceGameObject(
+		@NonNull final GameObject gameObject,
+		@NonNull final SkillIconManager skillIconManager,
+		final int iconSize)
 	{
-		this.resourceType = resourceType;
 		this.gameObject = gameObject;
 		this.iconSize = iconSize;
-		this.outlineColor = outlineColor;
-		this.fillColor = fillColor;
+		this.resource = getResourceByObjectId(gameObject.getId());
 
-		originalIcon = getOriginalIcon(skillIconManager, resourceType, false);
-		minimapIcon = getOriginalIcon(skillIconManager, resourceType, true);
-	}
-
-	boolean isResourceType(final ResourceType resourceType)
-	{
-		return this.resourceType == resourceType;
+		originalIcon = getOriginalIcon(resource, skillIconManager, false);
+		minimapIcon = getOriginalIcon(resource, skillIconManager, true);
 	}
 
 	void setIconSize(final int iconSize)
@@ -102,26 +85,6 @@ class ResourceEntity
 		return icon;
 	}
 
-	private static BufferedImage getOriginalIcon(final SkillIconManager skillIconManager,
-												 final ResourceType resourceType, final boolean small)
-	{
-		switch (resourceType)
-		{
-			case ORE_DEPOSIT:
-				return skillIconManager.getSkillImage(Skill.MINING, small);
-			case PHREN_ROOTS:
-				return skillIconManager.getSkillImage(Skill.WOODCUTTING, small);
-			case FISHING_SPOT:
-				return skillIconManager.getSkillImage(Skill.FISHING, small);
-			case GRYM_ROOT:
-				return skillIconManager.getSkillImage(Skill.HERBLORE, small);
-			case LINUM_TIRINUM:
-				return skillIconManager.getSkillImage(Skill.FARMING, small);
-			default:
-				throw new IllegalArgumentException("Unsupported resource type");
-		}
-	}
-
 	@Nullable
 	Point getMinimapPoint()
 	{
@@ -135,12 +98,85 @@ class ResourceEntity
 		return new Point(point.getX() - minimapIcon.getHeight() / 2, point.getY() - minimapIcon.getWidth() / 2);
 	}
 
-	enum ResourceType
+	private static BufferedImage getOriginalIcon(final Resource resource,
+												 final SkillIconManager skillIconManager,
+												 final boolean small)
 	{
-		ORE_DEPOSIT,
-		PHREN_ROOTS,
-		GRYM_ROOT,
-		LINUM_TIRINUM,
-		FISHING_SPOT
+		switch (resource)
+		{
+			case RAW_PADDLEFISH:
+				return skillIconManager.getSkillImage(Skill.FISHING, small);
+			case CRYSTAL_ORE:
+			case CORRUPTED_ORE:
+				return skillIconManager.getSkillImage(Skill.MINING, small);
+			case PHREN_BARK:
+			case CORRUPTED_PHREN_BARK:
+				return skillIconManager.getSkillImage(Skill.WOODCUTTING, small);
+			case LINUM_TIRINUM:
+			case CORRUPTED_LINUM_TIRINUM:
+				return skillIconManager.getSkillImage(Skill.FARMING, small);
+			case GRYM_LEAF:
+			case CORRUPTED_GRYM_LEAF:
+				return skillIconManager.getSkillImage(Skill.HERBLORE, small);
+			default:
+				throw new IllegalArgumentException("Unsupported resource: " + resource);
+		}
+	}
+
+	private static Resource getResourceByObjectId(final int objectId)
+	{
+		switch (objectId)
+		{
+			case ObjectID.CRYSTAL_DEPOSIT:
+				return Resource.CRYSTAL_ORE;
+			case ObjectID.CORRUPT_DEPOSIT:
+				return Resource.CORRUPTED_ORE;
+			case ObjectID.PHREN_ROOTS:
+				return Resource.PHREN_BARK;
+			case ObjectID.CORRUPT_PHREN_ROOTS:
+				return Resource.CORRUPTED_PHREN_BARK;
+			case ObjectID.LINUM_TIRINUM:
+				return Resource.LINUM_TIRINUM;
+			case ObjectID.CORRUPT_LINUM_TIRINUM:
+				return Resource.CORRUPTED_LINUM_TIRINUM;
+			case ObjectID.GRYM_ROOT:
+				return Resource.GRYM_LEAF;
+			case ObjectID.CORRUPT_GRYM_ROOT:
+				return Resource.CORRUPTED_GRYM_LEAF;
+			case ObjectID.CORRUPT_FISHING_SPOT:
+			case ObjectID.FISHING_SPOT_36068:
+				return Resource.RAW_PADDLEFISH;
+			default:
+				throw new IllegalArgumentException("Unsupported game object id: " + objectId);
+		}
+	}
+
+	@Override
+	public boolean equals(final Object o)
+	{
+		if (this == o)
+		{
+			return true;
+		}
+
+		if (!(o instanceof ResourceGameObject))
+		{
+			return false;
+		}
+
+		final ResourceGameObject that = (ResourceGameObject) o;
+		return gameObject.equals(that.gameObject);
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return gameObject.hashCode();
+	}
+
+	@Override
+	public String toString()
+	{
+		return "SkillResource{resource=" + resource + ", gameObject=" + gameObject + '}';
 	}
 }

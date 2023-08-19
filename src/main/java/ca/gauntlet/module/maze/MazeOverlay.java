@@ -1,7 +1,7 @@
 /*
  * BSD 2-Clause License
  *
- * Copyright (c) 2020, dutta64 <https://github.com/dutta64>
+ * Copyright (c) 2023, rdutta <https://github.com/rdutta>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@ package ca.gauntlet.module.maze;
 import ca.gauntlet.TheGauntletConfig;
 import ca.gauntlet.TheGauntletPlugin;
 import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
@@ -37,7 +38,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import net.runelite.api.Client;
 import net.runelite.api.GameObject;
-import net.runelite.api.ObjectID;
 import net.runelite.api.Perspective;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.client.ui.overlay.Overlay;
@@ -83,37 +83,38 @@ class MazeOverlay extends Overlay
 	{
 		renderResources(graphics2D);
 		renderUtilities();
-
 		return null;
 	}
 
 	private void renderResources(final Graphics2D graphics2D)
 	{
-		if (!config.overlayResources() || mazeModule.getResourceEntities().isEmpty())
+		if (!config.overlayResources() || mazeModule.getResourceGameObjects().isEmpty())
 		{
 			return;
 		}
 
-		for (final ResourceEntity resourceEntity : mazeModule.getResourceEntities())
+		for (final ResourceGameObject resourceGameObject : mazeModule.getResourceGameObjects())
 		{
-			if (!isOverlayEnabled(resourceEntity))
+			if (!isOverlayEnabled(resourceGameObject.getResource()))
 			{
 				continue;
 			}
 
-			if (resourceManager.hasAcquiredResource(resourceEntity))
+			if (config.resourceTracker() &&
+				config.resourceRemoveOutlineOnceAcquired() &&
+				resourceManager.hasAcquired(resourceGameObject.getResource()))
 			{
 				continue;
 			}
 
-			final GameObject gameObject = resourceEntity.getGameObject();
+			final GameObject gameObject = resourceGameObject.getGameObject();
 
 			final LocalPoint lp = gameObject.getLocalLocation();
 
 			if (config.resourceHullOutlineWidth() > 0)
 			{
 				modelOutlineRenderer.drawOutline(gameObject, config.resourceHullOutlineWidth(),
-					resourceEntity.getOutlineColor(), 1);
+					getResourceOutlineColor(resourceGameObject.getResource()), 1);
 			}
 
 			if (config.resourceTileOutlineWidth() > 0)
@@ -122,14 +123,14 @@ class MazeOverlay extends Overlay
 
 				if (polygon != null)
 				{
-					OverlayUtil.renderPolygon(graphics2D, polygon, resourceEntity.getOutlineColor(),
-						resourceEntity.getFillColor(), new BasicStroke(config.resourceTileOutlineWidth()));
+					OverlayUtil.renderPolygon(graphics2D, polygon, getResourceOutlineColor(resourceGameObject.getResource()),
+						getResourceFillColor(resourceGameObject.getResource()), new BasicStroke(config.resourceTileOutlineWidth()));
 				}
 			}
 
 			if (config.resourceIconSize() > 0)
 			{
-				OverlayUtil.renderImageLocation(client, graphics2D, lp, resourceEntity.getIcon(), 0);
+				OverlayUtil.renderImageLocation(client, graphics2D, lp, resourceGameObject.getIcon(), 0);
 			}
 		}
 	}
@@ -148,27 +149,72 @@ class MazeOverlay extends Overlay
 		}
 	}
 
-	private boolean isOverlayEnabled(final ResourceEntity resourceEntity)
+	private Color getResourceOutlineColor(final Resource resource)
 	{
-		switch (resourceEntity.getGameObject().getId())
+		switch (resource)
 		{
-			case ObjectID.CRYSTAL_DEPOSIT:
-			case ObjectID.CORRUPT_DEPOSIT:
-				return config.overlayOreDeposit();
-			case ObjectID.PHREN_ROOTS:
-			case ObjectID.CORRUPT_PHREN_ROOTS:
-				return config.overlayPhrenRoots();
-			case ObjectID.LINUM_TIRINUM:
-			case ObjectID.CORRUPT_LINUM_TIRINUM:
-				return config.overlayLinumTirinum();
-			case ObjectID.GRYM_ROOT:
-			case ObjectID.CORRUPT_GRYM_ROOT:
-				return config.overlayGrymRoot();
-			case ObjectID.FISHING_SPOT_36068:
-			case ObjectID.CORRUPT_FISHING_SPOT:
-				return config.overlayFishingSpot();
+			case RAW_PADDLEFISH:
+				return config.fishingSpotOutlineColor();
+			case CRYSTAL_ORE:
+			case CORRUPTED_ORE:
+				return config.oreDepositOutlineColor();
+			case PHREN_BARK:
+			case CORRUPTED_PHREN_BARK:
+				return config.phrenRootsOutlineColor();
+			case LINUM_TIRINUM:
+			case CORRUPTED_LINUM_TIRINUM:
+				return config.linumTirinumOutlineColor();
+			case GRYM_LEAF:
+			case CORRUPTED_GRYM_LEAF:
+				return config.grymRootOutlineColor();
 			default:
-				return false;
+				throw new IllegalArgumentException("Unsupported resource: " + resource);
+		}
+	}
+
+	private Color getResourceFillColor(final Resource resource)
+	{
+		switch (resource)
+		{
+			case RAW_PADDLEFISH:
+				return config.fishingSpotFillColor();
+			case CRYSTAL_ORE:
+			case CORRUPTED_ORE:
+				return config.oreDepositFillColor();
+			case PHREN_BARK:
+			case CORRUPTED_PHREN_BARK:
+				return config.phrenRootsFillColor();
+			case LINUM_TIRINUM:
+			case CORRUPTED_LINUM_TIRINUM:
+				return config.linumTirinumFillColor();
+			case GRYM_LEAF:
+			case CORRUPTED_GRYM_LEAF:
+				return config.grymRootFillColor();
+			default:
+				throw new IllegalArgumentException("Unsupported resource: " + resource);
+		}
+	}
+
+	private boolean isOverlayEnabled(final Resource resource)
+	{
+		switch (resource)
+		{
+			case RAW_PADDLEFISH:
+				return config.overlayFishingSpot();
+			case CRYSTAL_ORE:
+			case CORRUPTED_ORE:
+				return config.overlayOreDeposit();
+			case PHREN_BARK:
+			case CORRUPTED_PHREN_BARK:
+				return config.overlayPhrenRoots();
+			case LINUM_TIRINUM:
+			case CORRUPTED_LINUM_TIRINUM:
+				return config.overlayLinumTirinum();
+			case GRYM_LEAF:
+			case CORRUPTED_GRYM_LEAF:
+				return config.overlayGrymRoot();
+			default:
+				throw new IllegalArgumentException("Unsupported resource: " + resource);
 		}
 	}
 }

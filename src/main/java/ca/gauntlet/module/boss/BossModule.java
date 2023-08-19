@@ -1,17 +1,42 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Copyright (c) 2023, rdutta <https://github.com/rdutta>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package ca.gauntlet.module.boss;
 
 import ca.gauntlet.TheGauntletConfig;
 import ca.gauntlet.module.Module;
 import ca.gauntlet.module.overlay.TimerOverlay;
-import com.google.common.collect.ImmutableSet;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.NPC;
 import net.runelite.api.NpcID;
@@ -26,15 +51,14 @@ import net.runelite.client.game.npcoverlay.HighlightedNpc;
 import net.runelite.client.game.npcoverlay.NpcOverlayService;
 import net.runelite.client.ui.overlay.OverlayManager;
 
-@Slf4j
 @Singleton
-public class BossModule implements Module
+public final class BossModule implements Module
 {
-	private static final Set<Integer> TORNADO_IDS = ImmutableSet.of(NullNpcID.NULL_9025, NullNpcID.NULL_9039);
+	private static final List<Integer> TORNADO_IDS = List.of(NullNpcID.NULL_9025, NullNpcID.NULL_9039);
 	private final Function<NPC, HighlightedNpc> npcHighlighter = this::highlightNpc;
 
 	@Getter(AccessLevel.PACKAGE)
-	private final Set<NPC> tornadoes = new HashSet<>();
+	private final List<NPC> tornadoes = new ArrayList<>();
 
 	@Inject
 	private EventBus eventBus;
@@ -73,7 +97,7 @@ public class BossModule implements Module
 	}
 
 	@Subscribe
-	private void onGameStateChanged(final GameStateChanged event)
+	void onGameStateChanged(final GameStateChanged event)
 	{
 		switch (event.getGameState())
 		{
@@ -85,7 +109,7 @@ public class BossModule implements Module
 	}
 
 	@Subscribe
-	private void onActorDeath(final ActorDeath event)
+	void onActorDeath(final ActorDeath event)
 	{
 		if (event.getActor() == client.getLocalPlayer())
 		{
@@ -94,7 +118,7 @@ public class BossModule implements Module
 	}
 
 	@Subscribe
-	private void onNpcSpawned(final NpcSpawned event)
+	void onNpcSpawned(final NpcSpawned event)
 	{
 		final NPC npc = event.getNpc();
 
@@ -105,7 +129,7 @@ public class BossModule implements Module
 	}
 
 	@Subscribe
-	private void onNpcDespawned(final NpcDespawned event)
+	void onNpcDespawned(final NpcDespawned event)
 	{
 		final NPC npc = event.getNpc();
 

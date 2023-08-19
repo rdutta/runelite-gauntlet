@@ -1,7 +1,7 @@
 /*
  * BSD 2-Clause License
  *
- * Copyright (c) 2020, dutta64 <https://github.com/dutta64>
+ * Copyright (c) 2023, rdutta <https://github.com/rdutta>
  * Copyright (c) 2020, Anthony Alves
  * All rights reserved.
  *
@@ -28,37 +28,35 @@
 
 package ca.gauntlet.module.maze;
 
+import ca.gauntlet.ResourceCount;
 import ca.gauntlet.TheGauntletConfig;
 import ca.gauntlet.TheGauntletConfig.TrackingMode;
 import ca.gauntlet.TheGauntletPlugin;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.AbstractMap;
+import java.util.EnumMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import net.runelite.api.Client;
-import net.runelite.api.ObjectID;
-import net.runelite.client.eventbus.EventBus;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.ui.overlay.infobox.InfoBox;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
+import net.runelite.client.ui.overlay.infobox.InfoBoxPriority;
 import net.runelite.client.util.Text;
 
+@Slf4j
 @Singleton
 class ResourceManager
 {
-	private static final int SHARD_COUNT_BREAK_DOWN = 80;
-
 	private static final Pattern PATTERN_RESOURCE_DROP = Pattern.compile("^.+ drop:\\s+((?<quantity>\\d+) x )?(?<name>.+)$");
+	private static final int SHARD_COUNT_BREAK_DOWN = 80;
+	private final EnumMap<Resource, ResourceCounter> counterByResource = new EnumMap<>(Resource.class);
 
-	private final Set<Resource> resources = new HashSet<>();
-
-	private final Map<Resource, ResourceCounter> resourceCounters = new HashMap<>();
-
-	@Inject
-	private Client client;
 	@Inject
 	private TheGauntletPlugin plugin;
 	@Inject
@@ -67,36 +65,23 @@ class ResourceManager
 	private ItemManager itemManager;
 	@Inject
 	private InfoBoxManager infoBoxManager;
-	@Inject
-	private EventBus eventBus;
 
 	private Region region = Region.UNKNOWN;
 
-	void init()
+	void init(final int regionId)
 	{
-		region = Region.fromId(client.getMapRegions()[0]);
+		region = Region.fromId(regionId);
 
-		if (config.resourceTracker() &&
-			region != Region.UNKNOWN &&
-			config.resourceTrackingMode() == TrackingMode.DECREMENT)
+		if (region != Region.UNKNOWN && config.resourceTracker())
 		{
-			createInfoBoxCountersFromConfig();
+			createResourceCountersFromConfig();
 		}
 	}
 
 	void reset()
 	{
 		region = Region.UNKNOWN;
-
-		resources.clear();
-
-		resourceCounters.clear();
-
-		infoBoxManager.getInfoBoxes()
-			.stream()
-			.filter(ResourceCounter.class::isInstance)
-			.forEach(eventBus::unregister);
-
+		counterByResource.clear();
 		infoBoxManager.removeIf(ResourceCounter.class::isInstance);
 	}
 
@@ -107,55 +92,28 @@ class ResourceManager
 			return;
 		}
 
-		if (chatMessage.startsWith("<"))
+		if (chatMessage.charAt(0) == '<')
 		{
 			// Loot drops always start with a color tag
 			// e.g. <col=005f00>Player recieved a drop: ...
 			// e.g. <col=ef1020>Untradeable drop: ...
-			processNpcResource(chatMessage);
+			parseNpcChatMessage(chatMessage);
 		}
 		else
 		{
-			processSkillResource(chatMessage);
+			parseSkillChatMessage(chatMessage);
 		}
 	}
 
-	void remove(final ResourceCounter resourceCounter)
+	boolean hasAcquired(final Resource resource)
 	{
-		resources.remove(resourceCounter.getResource());
-		eventBus.unregister(resourceCounter);
-		infoBoxManager.removeInfoBox(resourceCounter);
+		final ResourceCounter resourceCounter = counterByResource.get(resource);
+		return resourceCounter == null ? config.resourceRemoveAcquired() : resourceCounter.hasAcquiredTarget();
 	}
 
-	boolean hasAcquiredResource(final ResourceEntity resourceEntity)
+	private void parseNpcChatMessage(final String message)
 	{
-		if (!config.resourceTracker() ||
-			!config.resourceRemoveOutlineOnceAcquired() ||
-			config.resourceTrackingMode() == TrackingMode.INCREMENT)
-		{
-			return false;
-		}
-
-		final Resource resource = getResourceFromObjectId(resourceEntity.getGameObject().getId());
-
-		if (resource == null)
-		{
-			return false;
-		}
-
-		final ResourceCounter resourceCounter = resourceCounters.get(resource);
-
-		if (resourceCounter == null)
-		{
-			return false;
-		}
-
-		return resourceCounter.getCount() == 0;
-	}
-
-	private void processNpcResource(final String parsedMessage)
-	{
-		final String noTagsMessage = Text.removeTags(parsedMessage);
+		final String noTagsMessage = Text.removeTags(message);
 
 		final Matcher matcher = PATTERN_RESOURCE_DROP.matcher(noTagsMessage);
 
@@ -173,7 +131,7 @@ class ResourceManager
 
 		final Resource resource = Resource.fromName(name, region == Region.CORRUPTED);
 
-		if (resource == null || !isTrackingResource(resource))
+		if (resource == null)
 		{
 			return;
 		}
@@ -182,203 +140,103 @@ class ResourceManager
 
 		final int count = quantity != null ? Integer.parseInt(quantity) : 1;
 
-		processResource(resource, count);
+		updateResourceCounter(resource, count);
 	}
 
-	private void processSkillResource(final String parsedMessage)
+	private void parseSkillChatMessage(final String message)
 	{
-		if (parsedMessage.startsWith("break down", 4))
+		if (message.startsWith("break down", 4))
 		{
 			final Resource resource = region == Region.CORRUPTED ?
 				Resource.CORRUPTED_SHARDS : Resource.CRYSTAL_SHARDS;
 
-			if (isTrackingResource(resource))
-			{
-				processResource(resource, SHARD_COUNT_BREAK_DOWN);
-			}
-
+			updateResourceCounter(resource, SHARD_COUNT_BREAK_DOWN);
 			return;
 		}
 
-		final Map<Resource, Integer> mapping = Resource.fromPattern(parsedMessage, region == Region.CORRUPTED);
+		final AbstractMap.Entry<Resource, Integer> mapping = Resource.fromPattern(message, region == Region.CORRUPTED);
 
 		if (mapping == null)
 		{
 			return;
 		}
 
-		final Resource resource = mapping.keySet().iterator().next();
+		updateResourceCounter(mapping.getKey(), mapping.getValue());
+	}
 
-		if (!isTrackingResource(resource))
+	private void updateResourceCounter(final Resource resource, final int count)
+	{
+		final ResourceCounter resourceCounter = counterByResource.get(resource);
+
+		if (resourceCounter == null)
 		{
 			return;
 		}
 
-		processResource(resource, mapping.get(resource));
-	}
+		resourceCounter.updateCount(count);
 
-	private void processResource(final Resource resource, final int count)
-	{
-		if (resources.add(resource))
+		if (config.resourceRemoveAcquired() && resourceCounter.hasAcquiredTarget())
 		{
-			final ResourceCounter resourceCounter = new ResourceCounter(
-				resource,
-				plugin,
-				itemManager.getImage(resource.getItemId()),
-				this,
-				count,
-				config.resourceTrackingMode() == TrackingMode.DECREMENT
-			);
-
-			eventBus.register(resourceCounter);
-			infoBoxManager.addInfoBox(resourceCounter);
-			resourceCounters.put(resource, resourceCounter);
-		}
-		else
-		{
-			eventBus.post(new ResourceEvent(resource, count));
+			counterByResource.remove(resource);
+			infoBoxManager.removeInfoBox(resourceCounter);
 		}
 	}
 
-	private void createInfoBoxCountersFromConfig()
+	private void createResourceCounter(final Resource resource, final int count)
 	{
-		final int oreCount = config.resourceOre();
-		final int barkCount = config.resourceBark();
-		final int tirinumCount = config.resourceTirinum();
-		final int grymCount = config.resourceGrym();
-		final int frameCount = config.resourceFrame();
-		final int fishCount = config.resourcePaddlefish();
-		final int shardCount = config.resourceShard();
+		if (count <= 0)
+		{
+			return;
+		}
 
-		final boolean bowstring = config.resourceBowstring();
-		final boolean spike = config.resourceSpike();
-		final boolean orb = config.resourceOrb();
+		final boolean decrement = config.resourceTrackingMode() == TrackingMode.DECREMENT;
 
+		final ResourceCounter resourceCounter = new ResourceCounter(
+			itemManager.getImage(resource.getItemId()),
+			plugin,
+			resource,
+			decrement ? count : 0,
+			decrement ? 0 : count
+		);
+
+		counterByResource.put(resource, resourceCounter);
+		infoBoxManager.addInfoBox(resourceCounter);
+	}
+
+	private void createResourceCountersFromConfig()
+	{
 		final boolean corrupted = region == Region.CORRUPTED;
 
-		if (oreCount > 0)
+		for (final Method m : TheGauntletConfig.class.getMethods())
 		{
-			processResource(corrupted ? Resource.CORRUPTED_ORE : Resource.CRYSTAL_ORE, oreCount);
-		}
-		if (barkCount > 0)
-		{
-			processResource(corrupted ? Resource.CORRUPTED_PHREN_BARK : Resource.PHREN_BARK, barkCount);
-		}
-		if (tirinumCount > 0)
-		{
-			processResource(corrupted ? Resource.CORRUPTED_LINUM_TIRINUM : Resource.LINUM_TIRINUM, tirinumCount);
-		}
-		if (grymCount > 0)
-		{
-			processResource(corrupted ? Resource.CORRUPTED_GRYM_LEAF : Resource.GRYM_LEAF, grymCount);
-		}
-		if (frameCount > 0)
-		{
-			processResource(corrupted ? Resource.CORRUPTED_WEAPON_FRAME : Resource.WEAPON_FRAME, frameCount);
-		}
-		if (fishCount > 0)
-		{
-			processResource(Resource.RAW_PADDLEFISH, fishCount);
-		}
-		if (shardCount > 0)
-		{
-			processResource(corrupted ? Resource.CORRUPTED_SHARDS : Resource.CRYSTAL_SHARDS, shardCount);
-		}
-		if (bowstring)
-		{
-			processResource(corrupted ? Resource.CORRUPTED_BOWSTRING : Resource.CRYSTALLINE_BOWSTRING, 1);
-		}
-		if (spike)
-		{
-			processResource(corrupted ? Resource.CORRUPTED_SPIKE : Resource.CRYSTAL_SPIKE, 1);
-		}
-		if (orb)
-		{
-			processResource(corrupted ? Resource.CORRUPTED_ORB : Resource.CRYSTAL_ORB, 1);
-		}
-	}
+			final ResourceCount resourceCount = m.getAnnotation(ResourceCount.class);
 
-	private Resource getResourceFromObjectId(final int objectId)
-	{
-		switch (objectId)
-		{
-			case ObjectID.CRYSTAL_DEPOSIT:
-				return Resource.CRYSTAL_ORE;
-			case ObjectID.CORRUPT_DEPOSIT:
-				return Resource.CORRUPTED_ORE;
+			if (resourceCount == null)
+			{
+				continue;
+			}
 
-			case ObjectID.PHREN_ROOTS:
-				return Resource.PHREN_BARK;
-			case ObjectID.CORRUPT_PHREN_ROOTS:
-				return Resource.CORRUPTED_PHREN_BARK;
+			try
+			{
+				final Resource resource = corrupted ? resourceCount.corrupted() : resourceCount.normal();
+				final Object result = m.invoke(config);
+				final Class<?> returnType = m.getReturnType();
 
-			case ObjectID.LINUM_TIRINUM:
-				return Resource.LINUM_TIRINUM;
-			case ObjectID.CORRUPT_LINUM_TIRINUM:
-				return Resource.CORRUPTED_LINUM_TIRINUM;
-
-			case ObjectID.GRYM_ROOT:
-				return Resource.GRYM_LEAF;
-			case ObjectID.CORRUPT_GRYM_ROOT:
-				return Resource.CORRUPTED_GRYM_LEAF;
-
-			case ObjectID.CORRUPT_FISHING_SPOT:
-			case ObjectID.FISHING_SPOT_36068:
-				return Resource.RAW_PADDLEFISH;
-
-			default:
-				return null;
+				if (returnType.equals(Integer.TYPE))
+				{
+					createResourceCounter(resource, (int) result);
+				}
+				else if (returnType.equals(Boolean.TYPE))
+				{
+					createResourceCounter(resource, (boolean) result ? 1 : 0);
+				}
+			}
+			catch (final InvocationTargetException | IllegalAccessException | ClassCastException e)
+			{
+				log.error("Error creating resource counter from config " + m.getName());
+				e.printStackTrace();
+			}
 		}
-	}
-
-	private int getResourceTargetCount(final Resource resource)
-	{
-		switch (resource)
-		{
-			case CRYSTAL_ORE:
-			case CORRUPTED_ORE:
-				return config.resourceOre();
-			case PHREN_BARK:
-			case CORRUPTED_PHREN_BARK:
-				return config.resourceBark();
-			case LINUM_TIRINUM:
-			case CORRUPTED_LINUM_TIRINUM:
-				return config.resourceTirinum();
-			case GRYM_LEAF:
-			case CORRUPTED_GRYM_LEAF:
-				return config.resourceGrym();
-			case CRYSTAL_SHARDS:
-			case CORRUPTED_SHARDS:
-				return config.resourceShard();
-			case RAW_PADDLEFISH:
-				return config.resourcePaddlefish();
-			case WEAPON_FRAME:
-			case CORRUPTED_WEAPON_FRAME:
-				return config.resourceFrame();
-			case CRYSTALLINE_BOWSTRING:
-			case CORRUPTED_BOWSTRING:
-				return config.resourceBowstring() ? 1 : 0;
-			case CRYSTAL_SPIKE:
-			case CORRUPTED_SPIKE:
-				return config.resourceSpike() ? 1 : 0;
-			case CRYSTAL_ORB:
-			case CORRUPTED_ORB:
-				return config.resourceOrb() ? 1 : 0;
-			case TELEPORT_CRYSTAL:
-			case CORRUPTED_TELEPORT_CRYSTAL:
-			default:
-				return 0;
-		}
-	}
-
-	private boolean isTrackingResource(final Resource resource)
-	{
-		if (config.resourceTrackingMode() == TrackingMode.DECREMENT)
-		{
-			return resources.contains(resource);
-		}
-
-		return getResourceTargetCount(resource) > 0;
 	}
 
 	private enum Region
@@ -397,6 +255,87 @@ class ResourceManager
 					return CORRUPTED;
 				default:
 					return UNKNOWN;
+			}
+		}
+	}
+
+	private static class ResourceCounter extends InfoBox
+	{
+		private final int target;
+		private int count;
+		private String text;
+		private Color color = Color.WHITE;
+
+		private ResourceCounter(
+			final BufferedImage bufferedImage,
+			final TheGauntletPlugin plugin,
+			final Resource resource,
+			final int count,
+			final int target)
+		{
+			super(bufferedImage, plugin);
+			setPriority(getPriority(resource));
+			this.count = count;
+			this.target = Math.max(0, target);
+			this.text = String.valueOf(count);
+		}
+
+		@Override
+		public String getText()
+		{
+			return text;
+		}
+
+		@Override
+		public Color getTextColor()
+		{
+			return color;
+		}
+
+		private void updateCount(final int count)
+		{
+			if (target == 0)
+			{
+				this.count = Math.max(0, this.count - count);
+			}
+			else
+			{
+				this.count += count;
+			}
+
+			if (hasAcquiredTarget())
+			{
+				color = Color.GRAY;
+			}
+
+			text = String.valueOf(this.count);
+		}
+
+		private boolean hasAcquiredTarget()
+		{
+			return target == 0 ? count <= target : count >= target;
+		}
+
+		private static InfoBoxPriority getPriority(final Resource resource)
+		{
+			switch (resource)
+			{
+				case CRYSTAL_ORE:
+				case CORRUPTED_ORE:
+				case PHREN_BARK:
+				case CORRUPTED_PHREN_BARK:
+				case LINUM_TIRINUM:
+				case CORRUPTED_LINUM_TIRINUM:
+					return InfoBoxPriority.HIGH;
+				case GRYM_LEAF:
+				case CORRUPTED_GRYM_LEAF:
+					return InfoBoxPriority.MED;
+				case CRYSTAL_SHARDS:
+				case CORRUPTED_SHARDS:
+				case RAW_PADDLEFISH:
+					return InfoBoxPriority.NONE;
+				default:
+					return InfoBoxPriority.LOW;
 			}
 		}
 	}

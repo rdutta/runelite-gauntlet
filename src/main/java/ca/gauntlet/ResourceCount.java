@@ -1,7 +1,7 @@
 /*
  * BSD 2-Clause License
  *
- * Copyright (c) 2020, dutta64 <https://github.com/dutta64>
+ * Copyright (c) 2023, rdutta <https://github.com/rdutta>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,13 +25,19 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package ca.gauntlet.module.maze;
+package ca.gauntlet;
 
-import lombok.Value;
+import ca.gauntlet.module.maze.Resource;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-@Value
-class ResourceEvent
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface ResourceCount
 {
-	Resource resource;
-	int count;
+	Resource normal();
+
+	Resource corrupted();
 }

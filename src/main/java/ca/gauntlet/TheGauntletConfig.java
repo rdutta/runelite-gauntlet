@@ -1,7 +1,7 @@
 /*
  * BSD 2-Clause License
  *
- * Copyright (c) 2020, dutta64 <https://github.com/dutta64>
+ * Copyright (c) 2023, rdutta <https://github.com/rdutta>
  * Copyright (c) 2019, kThisIsCvpv <https://github.com/kThisIsCvpv>
  * Copyright (c) 2019, ganom <https://github.com/Ganom>
  * Copyright (c) 2019, kyle <https://github.com/Kyleeld>
@@ -30,6 +30,7 @@
 
 package ca.gauntlet;
 
+import ca.gauntlet.module.maze.Resource;
 import java.awt.Color;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -124,12 +125,25 @@ public interface TheGauntletConfig extends Config
 	}
 
 	@ConfigItem(
+		name = "Remove acquired resources",
+		description = "Remove counters when acquired amount reached.",
+		position = 2,
+		keyName = "resourceRemoveAcquired",
+		section = resourceTrackingSection
+	)
+	default boolean resourceRemoveAcquired()
+	{
+		return false;
+	}
+
+	@ConfigItem(
 		name = "Ore",
 		description = "The desired number of ores to acquire.",
-		position = 2,
+		position = 3,
 		keyName = "resourceOre",
 		section = resourceTrackingSection
 	)
+	@ResourceCount(normal = Resource.CRYSTAL_ORE, corrupted = Resource.CORRUPTED_ORE)
 	default int resourceOre()
 	{
 		return 3;
@@ -138,10 +152,11 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Phren bark",
 		description = "The desired number of phren barks to acquire.",
-		position = 3,
+		position = 4,
 		keyName = "resourceBark",
 		section = resourceTrackingSection
 	)
+	@ResourceCount(normal = Resource.PHREN_BARK, corrupted = Resource.CORRUPTED_PHREN_BARK)
 	default int resourceBark()
 	{
 		return 3;
@@ -150,10 +165,11 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Linum tirinum",
 		description = "The desired number of linum tirinums to acquire.",
-		position = 4,
+		position = 5,
 		keyName = "resourceTirinum",
 		section = resourceTrackingSection
 	)
+	@ResourceCount(normal = Resource.LINUM_TIRINUM, corrupted = Resource.CORRUPTED_LINUM_TIRINUM)
 	default int resourceTirinum()
 	{
 		return 3;
@@ -162,10 +178,11 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Grym leaf",
 		description = "The desired number of grym leaves to acquire.",
-		position = 5,
+		position = 6,
 		keyName = "resourceGrym",
 		section = resourceTrackingSection
 	)
+	@ResourceCount(normal = Resource.GRYM_LEAF, corrupted = Resource.CORRUPTED_GRYM_LEAF)
 	default int resourceGrym()
 	{
 		return 2;
@@ -174,10 +191,11 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Weapon frames",
 		description = "The desired number of weapon frames to acquire.",
-		position = 6,
+		position = 7,
 		keyName = "resourceFrame",
 		section = resourceTrackingSection
 	)
+	@ResourceCount(normal = Resource.WEAPON_FRAME, corrupted = Resource.CORRUPTED_WEAPON_FRAME)
 	default int resourceFrame()
 	{
 		return 2;
@@ -186,10 +204,11 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Paddlefish",
 		description = "The desired number of paddlefish to acquire.",
-		position = 7,
+		position = 8,
 		keyName = "resourcePaddlefish",
 		section = resourceTrackingSection
 	)
+	@ResourceCount(normal = Resource.RAW_PADDLEFISH, corrupted = Resource.RAW_PADDLEFISH)
 	default int resourcePaddlefish()
 	{
 		return 20;
@@ -198,10 +217,11 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Crystal shards",
 		description = "The desired number of crystal shards to acquire.",
-		position = 8,
+		position = 9,
 		keyName = "resourceShard",
 		section = resourceTrackingSection
 	)
+	@ResourceCount(normal = Resource.CRYSTAL_SHARDS, corrupted = Resource.CORRUPTED_SHARDS)
 	default int resourceShard()
 	{
 		return 320;
@@ -210,10 +230,11 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Bowstring",
 		description = "Whether or not to acquire the crystalline or corrupted bowstring.",
-		position = 9,
+		position = 10,
 		keyName = "resourceBowstring",
 		section = resourceTrackingSection
 	)
+	@ResourceCount(normal = Resource.CRYSTALLINE_BOWSTRING, corrupted = Resource.CORRUPTED_BOWSTRING)
 	default boolean resourceBowstring()
 	{
 		return false;
@@ -222,10 +243,11 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Spike",
 		description = "Whether or not to acquire the crystal or corrupted spike.",
-		position = 10,
+		position = 11,
 		keyName = "resourceSpike",
 		section = resourceTrackingSection
 	)
+	@ResourceCount(normal = Resource.CRYSTAL_SPIKE, corrupted = Resource.CORRUPTED_SPIKE)
 	default boolean resourceSpike()
 	{
 		return false;
@@ -234,10 +256,11 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Orb",
 		description = "Whether or not to acquire the crystal or corrupted orb.",
-		position = 11,
+		position = 12,
 		keyName = "resourceOrb",
 		section = resourceTrackingSection
 	)
+	@ResourceCount(normal = Resource.CRYSTAL_ORB, corrupted = Resource.CORRUPTED_ORB)
 	default boolean resourceOrb()
 	{
 		return false;
@@ -902,5 +925,4 @@ public interface TheGauntletConfig extends Config
 			return name;
 		}
 	}
-
 }

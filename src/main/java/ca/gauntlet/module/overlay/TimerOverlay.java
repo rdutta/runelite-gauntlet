@@ -1,7 +1,7 @@
 /*
  * BSD 2-Clause License
  *
- * Copyright (c) 2020, dutta64 <https://github.com/dutta64>
+ * Copyright (c) 2023, rdutta <https://github.com/rdutta>
  * Copyright (c) 2018, Seth <http://github.com/sethtroll>
  * All rights reserved.
  *
@@ -55,7 +55,7 @@ import net.runelite.client.ui.overlay.components.PanelComponent;
 import net.runelite.client.ui.overlay.components.TitleComponent;
 
 @Singleton
-public class TimerOverlay extends OverlayPanel
+public final class TimerOverlay extends OverlayPanel
 {
 	private final TheGauntletConfig config;
 	private final ChatMessageManager chatMessageManager;
@@ -66,6 +66,8 @@ public class TimerOverlay extends OverlayPanel
 
 	private long timeGauntletStart;
 	private long timeHunllefStart;
+
+	private long lastElapsed;
 
 	@Inject
 	TimerOverlay(final TheGauntletPlugin plugin, final TheGauntletConfig config, final ChatMessageManager chatMessageManager)
@@ -86,8 +88,9 @@ public class TimerOverlay extends OverlayPanel
 		prepTimeComponent = LineComponent.builder().left("Preparation:").right("").build();
 		totalTimeComponent = LineComponent.builder().left("Total:").right("").build();
 
-		timeGauntletStart = -1;
-		timeHunllefStart = -1;
+		timeGauntletStart = -1L;
+		timeHunllefStart = -1L;
+		lastElapsed = 0L;
 
 		setClearChildren(false);
 		getMenuEntries().add(new OverlayMenuEntry(RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "The Gauntlet timer"));
@@ -110,15 +113,22 @@ public class TimerOverlay extends OverlayPanel
 
 		final LineComponent lineComponent = timeHunllefStart == -1 ? prepTimeComponent : totalTimeComponent;
 
-		lineComponent.setRight(calculateElapsedTime(Instant.now().getEpochSecond(), timeGauntletStart));
+		final long elapsed = Instant.now().getEpochSecond() - timeGauntletStart;
+
+		if (elapsed != lastElapsed)
+		{
+			lineComponent.setRight(formatElapsedTime(elapsed));
+			lastElapsed = elapsed;
+		}
 
 		return super.render(graphics2D);
 	}
 
 	public void reset()
 	{
-		timeGauntletStart = -1;
-		timeHunllefStart = -1;
+		timeGauntletStart = -1L;
+		timeHunllefStart = -1L;
+		lastElapsed = 0L;
 		prepTimeComponent.setRight("");
 		totalTimeComponent.setRight("");
 		timerComponent.getChildren().clear();
@@ -163,9 +173,9 @@ public class TimerOverlay extends OverlayPanel
 
 		final long current = Instant.now().getEpochSecond();
 
-		final String elapsedPrepTime = calculateElapsedTime(timeHunllefStart, timeGauntletStart);
-		final String elapsedBossTime = calculateElapsedTime(current, timeHunllefStart);
-		final String elapsedTotalTime = calculateElapsedTime(current, timeGauntletStart);
+		final String elapsedPrepTime = formatElapsedTime(timeHunllefStart, timeGauntletStart);
+		final String elapsedBossTime = formatElapsedTime(current, timeHunllefStart);
+		final String elapsedTotalTime = formatElapsedTime(current, timeGauntletStart);
 
 		final ChatMessageBuilder chatMessageBuilder = new ChatMessageBuilder()
 			.append(ChatColorType.NORMAL)
@@ -189,10 +199,13 @@ public class TimerOverlay extends OverlayPanel
 			.build());
 	}
 
-	private static String calculateElapsedTime(final long end, final long start)
+	private static String formatElapsedTime(final long end, final long start)
 	{
-		final long elapsed = end - start;
+		return formatElapsedTime(end - start);
+	}
 
+	private static String formatElapsedTime(final long elapsed)
+	{
 		final long minutes = elapsed % 3600 / 60;
 		final long seconds = elapsed % 60;
 

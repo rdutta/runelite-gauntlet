@@ -1,7 +1,7 @@
 /*
  * BSD 2-Clause License
  *
- * Copyright (c) 2020, dutta64 <https://github.com/dutta64>
+ * Copyright (c) 2023, rdutta <https://github.com/rdutta>
  * Copyright (c) 2019, kThisIsCvpv <https://github.com/kThisIsCvpv>
  * Copyright (c) 2019, ganom <https://github.com/Ganom>
  * Copyright (c) 2019, kyle <https://github.com/Kyleeld>
@@ -49,7 +49,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 	tags = {"the", "gauntlet"},
 	enabledByDefault = false
 )
-public class TheGauntletPlugin extends Plugin
+public final class TheGauntletPlugin extends Plugin
 {
 	private static final int VARBIT_MAZE = 9178;
 	private static final int VARBIT_BOSS = 9177;
@@ -96,9 +96,8 @@ public class TheGauntletPlugin extends Plugin
 		bossModule.stop();
 	}
 
-
 	@Subscribe
-	private void onVarbitChanged(final VarbitChanged event)
+	void onVarbitChanged(final VarbitChanged event)
 	{
 		final int varbit = event.getVarbitId();
 

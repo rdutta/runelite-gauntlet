@@ -1,18 +1,44 @@
+/*
+ * BSD 2-Clause License
+ *
+ * Copyright (c) 2023, rdutta <https://github.com/rdutta>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package ca.gauntlet.module.maze;
 
 import ca.gauntlet.TheGauntletConfig;
 import ca.gauntlet.module.Module;
 import ca.gauntlet.module.overlay.TimerOverlay;
-import com.google.common.collect.ImmutableSet;
 import java.awt.Color;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameObject;
@@ -37,26 +63,40 @@ import net.runelite.client.game.npcoverlay.HighlightedNpc;
 import net.runelite.client.game.npcoverlay.NpcOverlayService;
 import net.runelite.client.ui.overlay.OverlayManager;
 
-@Slf4j
 @Singleton
-public class MazeModule implements Module
+public final class MazeModule implements Module
 {
-	private static final Set<Integer> RESOURCE_IDS = ImmutableSet.of(
-		ObjectID.CRYSTAL_DEPOSIT, ObjectID.CORRUPT_DEPOSIT,
-		ObjectID.PHREN_ROOTS, ObjectID.CORRUPT_PHREN_ROOTS,
-		ObjectID.FISHING_SPOT_36068, ObjectID.CORRUPT_FISHING_SPOT,
-		ObjectID.GRYM_ROOT, ObjectID.CORRUPT_GRYM_ROOT,
-		ObjectID.LINUM_TIRINUM, ObjectID.CORRUPT_LINUM_TIRINUM
+	private static final List<Integer> NPC_IDS_DEMIBOSS = List.of(
+		NpcID.CRYSTALLINE_BEAR,
+		NpcID.CRYSTALLINE_DARK_BEAST,
+		NpcID.CRYSTALLINE_DRAGON,
+		NpcID.CORRUPTED_BEAR,
+		NpcID.CORRUPTED_DARK_BEAST,
+		NpcID.CORRUPTED_DRAGON
 	);
-
-	private static final Set<Integer> UTILITY_IDS = ImmutableSet.of(
-		ObjectID.SINGING_BOWL_35966, ObjectID.SINGING_BOWL_36063,
-		ObjectID.RANGE_35980, ObjectID.RANGE_36077,
-		ObjectID.WATER_PUMP_35981, ObjectID.WATER_PUMP_36078
+	private static final List<Integer> GAME_OBJECT_IDS_RESOURCE = List.of(
+		ObjectID.CRYSTAL_DEPOSIT,
+		ObjectID.PHREN_ROOTS,
+		ObjectID.FISHING_SPOT_36068,
+		ObjectID.GRYM_ROOT,
+		ObjectID.LINUM_TIRINUM,
+		ObjectID.CORRUPT_DEPOSIT,
+		ObjectID.CORRUPT_PHREN_ROOTS,
+		ObjectID.CORRUPT_FISHING_SPOT,
+		ObjectID.CORRUPT_GRYM_ROOT,
+		ObjectID.CORRUPT_LINUM_TIRINUM
+	);
+	private static final List<Integer> GAME_OBJECT_IDS_UTILITY = List.of(
+		ObjectID.SINGING_BOWL_35966,
+		ObjectID.RANGE_35980,
+		ObjectID.WATER_PUMP_35981,
+		ObjectID.SINGING_BOWL_36063,
+		ObjectID.RANGE_36077,
+		ObjectID.WATER_PUMP_36078
 	);
 
 	@Getter(AccessLevel.PACKAGE)
-	private final Set<ResourceEntity> resourceEntities = new HashSet<>();
+	private final Set<ResourceGameObject> resourceGameObjects = new HashSet<>();
 	@Getter(AccessLevel.PACKAGE)
 	private final Set<Demiboss> demiBosses = new HashSet<>();
 	@Getter(AccessLevel.PACKAGE)
@@ -105,13 +145,13 @@ public class MazeModule implements Module
 		overlayManager.remove(minimapOverlay);
 		overlayManager.remove(timerOverlay);
 		resourceManager.reset();
-		resourceEntities.clear();
+		resourceGameObjects.clear();
 		utilities.clear();
 		demiBosses.clear();
 	}
 
 	@Subscribe
-	private void onConfigChanged(final ConfigChanged event)
+	void onConfigChanged(final ConfigChanged event)
 	{
 		if (!event.getGroup().equals(TheGauntletConfig.CONFIG_GROUP))
 		{
@@ -121,96 +161,17 @@ public class MazeModule implements Module
 		clientThread.invoke(() -> {
 			switch (event.getKey())
 			{
-				case "oreDepositOutlineColor":
-					if (!resourceEntities.isEmpty())
-					{
-						resourceEntities.stream()
-							.filter(r -> r.isResourceType(ResourceEntity.ResourceType.ORE_DEPOSIT))
-							.forEach(r -> r.setOutlineColor(config.oreDepositOutlineColor()));
-					}
-					break;
-				case "oreDepositFillColor":
-					if (!resourceEntities.isEmpty())
-					{
-						resourceEntities.stream()
-							.filter(r -> r.isResourceType(ResourceEntity.ResourceType.ORE_DEPOSIT))
-							.forEach(r -> r.setFillColor(config.oreDepositFillColor()));
-					}
-					break;
-				case "phrenRootsOutlineColor":
-					if (!resourceEntities.isEmpty())
-					{
-						resourceEntities.stream()
-							.filter(r -> r.isResourceType(ResourceEntity.ResourceType.PHREN_ROOTS))
-							.forEach(r -> r.setOutlineColor(config.phrenRootsOutlineColor()));
-					}
-					break;
-				case "phrenRootsFillColor":
-					if (!resourceEntities.isEmpty())
-					{
-						resourceEntities.stream()
-							.filter(r -> r.isResourceType(ResourceEntity.ResourceType.PHREN_ROOTS))
-							.forEach(r -> r.setFillColor(config.phrenRootsFillColor()));
-					}
-					break;
-				case "linumTirinumOutlineColor":
-					if (!resourceEntities.isEmpty())
-					{
-						resourceEntities.stream()
-							.filter(r -> r.isResourceType(ResourceEntity.ResourceType.LINUM_TIRINUM))
-							.forEach(r -> r.setOutlineColor(config.linumTirinumOutlineColor()));
-					}
-					break;
-				case "linumTirinumFillColor":
-					if (!resourceEntities.isEmpty())
-					{
-						resourceEntities.stream()
-							.filter(r -> r.isResourceType(ResourceEntity.ResourceType.LINUM_TIRINUM))
-							.forEach(r -> r.setFillColor(config.linumTirinumFillColor()));
-					}
-					break;
-				case "grymRootOutlineColor":
-					if (!resourceEntities.isEmpty())
-					{
-						resourceEntities.stream()
-							.filter(r -> r.isResourceType(ResourceEntity.ResourceType.GRYM_ROOT))
-							.forEach(r -> r.setOutlineColor(config.grymRootOutlineColor()));
-					}
-					break;
-				case "grymRootFillColor":
-					if (!resourceEntities.isEmpty())
-					{
-						resourceEntities.stream()
-							.filter(r -> r.isResourceType(ResourceEntity.ResourceType.GRYM_ROOT))
-							.forEach(r -> r.setFillColor(config.grymRootFillColor()));
-					}
-					break;
-				case "fishingSpotOutlineColor":
-					if (!resourceEntities.isEmpty())
-					{
-						resourceEntities.stream()
-							.filter(r -> r.isResourceType(ResourceEntity.ResourceType.FISHING_SPOT))
-							.forEach(r -> r.setOutlineColor(config.fishingSpotOutlineColor()));
-					}
-					break;
-				case "fishingSpotFillColor":
-					if (!resourceEntities.isEmpty())
-					{
-						resourceEntities.stream()
-							.filter(r -> r.isResourceType(ResourceEntity.ResourceType.FISHING_SPOT))
-							.forEach(r -> r.setFillColor(config.fishingSpotFillColor()));
-					}
-					break;
 				case "resourceIconSize":
-					if (!resourceEntities.isEmpty())
+					if (!resourceGameObjects.isEmpty())
 					{
-						resourceEntities.forEach(r -> r.setIconSize(config.resourceIconSize()));
+						resourceGameObjects.forEach(r -> r.setIconSize(config.resourceIconSize()));
 					}
 					break;
 				case "resourceTracker":
 				case "resourceTrackingMode":
+				case "resourceRemoveAcquired":
 					resourceManager.reset();
-					resourceManager.init();
+					resourceManager.init(client.getMapRegions()[0]);
 					break;
 				default:
 					npcOverlayService.rebuild();
@@ -220,12 +181,12 @@ public class MazeModule implements Module
 	}
 
 	@Subscribe
-	private void onGameStateChanged(final GameStateChanged event)
+	void onGameStateChanged(final GameStateChanged event)
 	{
 		switch (event.getGameState())
 		{
 			case LOADING:
-				resourceEntities.clear();
+				resourceGameObjects.clear();
 				utilities.clear();
 				break;
 			case LOGIN_SCREEN:
@@ -236,130 +197,73 @@ public class MazeModule implements Module
 	}
 
 	@Subscribe
-	private void onWidgetLoaded(final WidgetLoaded event)
+	void onWidgetLoaded(final WidgetLoaded event)
 	{
 		if (event.getGroupId() == WidgetID.GAUNTLET_TIMER_GROUP_ID)
 		{
-			resourceManager.init();
+			resourceManager.init(client.getMapRegions()[0]);
 			timerOverlay.setGauntletStart();
 		}
 	}
 
 	@Subscribe
-	private void onGameObjectSpawned(final GameObjectSpawned event)
+	void onGameObjectSpawned(final GameObjectSpawned event)
 	{
 		final GameObject gameObject = event.getGameObject();
 
 		final int id = gameObject.getId();
 
-		if (RESOURCE_IDS.contains(id))
+		if (GAME_OBJECT_IDS_RESOURCE.contains(id))
 		{
-			final ResourceEntity.ResourceType resourceType;
-			final Color outlineColor;
-			final Color fillColor;
-
-			switch (id)
-			{
-				case ObjectID.CRYSTAL_DEPOSIT:
-				case ObjectID.CORRUPT_DEPOSIT:
-					resourceType = ResourceEntity.ResourceType.ORE_DEPOSIT;
-					outlineColor = config.oreDepositOutlineColor();
-					fillColor = config.oreDepositFillColor();
-					break;
-				case ObjectID.PHREN_ROOTS:
-				case ObjectID.CORRUPT_PHREN_ROOTS:
-					resourceType = ResourceEntity.ResourceType.PHREN_ROOTS;
-					outlineColor = config.phrenRootsOutlineColor();
-					fillColor = config.phrenRootsFillColor();
-					break;
-				case ObjectID.FISHING_SPOT_36068:
-				case ObjectID.CORRUPT_FISHING_SPOT:
-					resourceType = ResourceEntity.ResourceType.FISHING_SPOT;
-					outlineColor = config.fishingSpotOutlineColor();
-					fillColor = config.fishingSpotFillColor();
-					break;
-				case ObjectID.GRYM_ROOT:
-				case ObjectID.CORRUPT_GRYM_ROOT:
-					resourceType = ResourceEntity.ResourceType.GRYM_ROOT;
-					outlineColor = config.grymRootOutlineColor();
-					fillColor = config.grymRootFillColor();
-					break;
-				case ObjectID.LINUM_TIRINUM:
-				case ObjectID.CORRUPT_LINUM_TIRINUM:
-					resourceType = ResourceEntity.ResourceType.LINUM_TIRINUM;
-					outlineColor = config.linumTirinumOutlineColor();
-					fillColor = config.linumTirinumFillColor();
-					break;
-				default:
-					throw new IllegalArgumentException("Unsupported resource id: " + id);
-			}
-
-			resourceEntities.add(new ResourceEntity(resourceType, gameObject, skillIconManager,
-				config.resourceIconSize(), outlineColor, fillColor));
+			resourceGameObjects.add(new ResourceGameObject(gameObject, skillIconManager, config.resourceIconSize()));
 		}
-		else if (UTILITY_IDS.contains(id))
+		else if (GAME_OBJECT_IDS_UTILITY.contains(id))
 		{
 			utilities.add(gameObject);
 		}
 	}
 
 	@Subscribe
-	private void onGameObjectDespawned(final GameObjectDespawned event)
+	void onGameObjectDespawned(final GameObjectDespawned event)
 	{
 		final GameObject gameObject = event.getGameObject();
 
 		final int id = gameObject.getId();
 
-		if (RESOURCE_IDS.contains(gameObject.getId()))
+		if (GAME_OBJECT_IDS_RESOURCE.contains(id))
 		{
-			resourceEntities.removeIf(o -> o.getGameObject() == gameObject);
+			resourceGameObjects.removeIf(o -> o.getGameObject() == gameObject);
 		}
-		else if (UTILITY_IDS.contains(id))
+		else if (GAME_OBJECT_IDS_UTILITY.contains(id))
 		{
 			utilities.remove(gameObject);
 		}
 	}
 
 	@Subscribe
-	private void onNpcSpawned(final NpcSpawned event)
+	void onNpcSpawned(final NpcSpawned event)
 	{
 		final NPC npc = event.getNpc();
 
-		switch (npc.getId())
+		if (NPC_IDS_DEMIBOSS.contains(npc.getId()))
 		{
-			case NpcID.CRYSTALLINE_BEAR:
-			case NpcID.CORRUPTED_BEAR:
-			case NpcID.CRYSTALLINE_DARK_BEAST:
-			case NpcID.CORRUPTED_DARK_BEAST:
-			case NpcID.CRYSTALLINE_DRAGON:
-			case NpcID.CORRUPTED_DRAGON:
-				demiBosses.add(new Demiboss(npc, skillIconManager));
-			default:
-				break;
+			demiBosses.add(new Demiboss(npc, skillIconManager));
 		}
 	}
 
 	@Subscribe
-	private void onNpcDespawned(final NpcDespawned event)
+	void onNpcDespawned(final NpcDespawned event)
 	{
 		final NPC npc = event.getNpc();
 
-		switch (npc.getId())
+		if (NPC_IDS_DEMIBOSS.contains(npc.getId()))
 		{
-			case NpcID.CRYSTALLINE_BEAR:
-			case NpcID.CORRUPTED_BEAR:
-			case NpcID.CRYSTALLINE_DARK_BEAST:
-			case NpcID.CORRUPTED_DARK_BEAST:
-			case NpcID.CRYSTALLINE_DRAGON:
-			case NpcID.CORRUPTED_DRAGON:
-				demiBosses.removeIf(d -> d.getNpc() == npc);
-			default:
-				break;
+			demiBosses.removeIf(d -> d.isNpc(npc));
 		}
 	}
 
 	@Subscribe
-	private void onActorDeath(final ActorDeath event)
+	void onActorDeath(final ActorDeath event)
 	{
 		if (event.getActor() == client.getLocalPlayer())
 		{
@@ -368,7 +272,7 @@ public class MazeModule implements Module
 	}
 
 	@Subscribe
-	private void onChatMessage(final ChatMessage event)
+	void onChatMessage(final ChatMessage event)
 	{
 		final ChatMessageType type = event.getType();
 
