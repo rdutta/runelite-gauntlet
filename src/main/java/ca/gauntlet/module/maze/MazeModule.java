@@ -31,10 +31,12 @@ import ca.gauntlet.TheGauntletConfig;
 import ca.gauntlet.module.Module;
 import ca.gauntlet.module.overlay.TimerOverlay;
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.Arrays;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.AccessLevel;
@@ -45,6 +47,9 @@ import net.runelite.api.GameObject;
 import net.runelite.api.NPC;
 import net.runelite.api.NpcID;
 import net.runelite.api.ObjectID;
+import net.runelite.api.MenuEntry;
+import net.runelite.api.ItemContainer;
+import net.runelite.api.InventoryID;
 import net.runelite.api.events.ActorDeath;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameObjectDespawned;
@@ -53,6 +58,7 @@ import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
 import net.runelite.api.events.WidgetLoaded;
+import net.runelite.api.events.PostMenuSort;
 import net.runelite.api.widgets.WidgetID;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.EventBus;
@@ -62,6 +68,8 @@ import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.game.npcoverlay.HighlightedNpc;
 import net.runelite.client.game.npcoverlay.NpcOverlayService;
 import net.runelite.client.ui.overlay.OverlayManager;
+
+import static net.runelite.api.ItemID.RAW_PADDLEFISH;
 
 @Singleton
 public final class MazeModule implements Module
@@ -194,6 +202,33 @@ public final class MazeModule implements Module
 				stop();
 				break;
 		}
+	}
+
+	@Subscribe
+	public void onPostMenuSort(PostMenuSort postMenuSort)
+	{
+		if ((!config.utilitiesFishCheck()) || client.isMenuOpen())
+		{
+			return;
+		}
+		final ItemContainer container = client.getItemContainer(InventoryID.INVENTORY);
+		if (container == null)
+		{
+			return;
+		}
+
+		final boolean hasRawFish = Arrays.stream(container.getItems()).anyMatch(x -> x.getId() == RAW_PADDLEFISH);
+		if (!hasRawFish)
+		{
+			return;
+		}
+
+		// Remove Quick-pass and Pass
+		MenuEntry[] filteredEntires = Arrays.stream(client.getMenuEntries())
+				.filter(x->!x.getOption().equals("Quick-pass") && !x.getOption().equals("Pass"))
+				.toArray(MenuEntry[]::new);
+
+		client.setMenuEntries(filteredEntires);
 	}
 
 	@Subscribe
