@@ -589,7 +589,7 @@ public interface TheGauntletConfig extends Config
 
 	@ConfigItem(
 			name = "Prevent entry with uncooked fish",
-			description = "Deprioritizes \"Pass\" and \"Quick-Pass\" while carrying uncooked paddlefish.<br>" + "Disable any custom menu-entry swaps as custom menu-entry swaps will take priority.",
+			description = "Removes \"Pass\" and \"Quick-Pass\" while carrying uncooked paddlefish.",
 			position = 3,
 			keyName = "utilitiesFishCheck",
 			section = utilitiesSection
