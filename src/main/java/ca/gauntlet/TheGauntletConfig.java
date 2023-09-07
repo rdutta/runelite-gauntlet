@@ -587,6 +587,19 @@ public interface TheGauntletConfig extends Config
 		return Color.MAGENTA;
 	}
 
+	@ConfigItem(
+		name = "Prevent entry with uncooked fish",
+		description = "Removes \"Pass\" and \"Quick-Pass\" while carrying uncooked paddlefish.",
+		position = 3,
+		keyName = "utilitiesFishCheck",
+		section = utilitiesSection
+	)
+	default boolean utilitiesFishCheck()
+	{
+		return false;
+	}
+
+
 	// Hunllef Section
 
 	@ConfigItem(
