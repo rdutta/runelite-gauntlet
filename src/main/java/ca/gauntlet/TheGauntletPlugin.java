@@ -46,8 +46,7 @@ import net.runelite.client.plugins.PluginDescriptor;
 @PluginDescriptor(
 	name = "The Gauntlet",
 	description = "All-in-one plugin for The Gauntlet.",
-	tags = {"the", "gauntlet"},
-	enabledByDefault = false
+	tags = {"the", "gauntlet"}
 )
 public final class TheGauntletPlugin extends Plugin
 {
