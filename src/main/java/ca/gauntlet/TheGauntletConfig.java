@@ -30,7 +30,6 @@
 
 package ca.gauntlet;
 
-import ca.gauntlet.module.maze.Resource;
 import java.awt.Color;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -143,7 +142,6 @@ public interface TheGauntletConfig extends Config
 		keyName = "resourceOre",
 		section = resourceTrackingSection
 	)
-	@ResourceCount(normal = Resource.CRYSTAL_ORE, corrupted = Resource.CORRUPTED_ORE)
 	default int resourceOre()
 	{
 		return 3;
@@ -156,7 +154,6 @@ public interface TheGauntletConfig extends Config
 		keyName = "resourceBark",
 		section = resourceTrackingSection
 	)
-	@ResourceCount(normal = Resource.PHREN_BARK, corrupted = Resource.CORRUPTED_PHREN_BARK)
 	default int resourceBark()
 	{
 		return 3;
@@ -169,7 +166,6 @@ public interface TheGauntletConfig extends Config
 		keyName = "resourceTirinum",
 		section = resourceTrackingSection
 	)
-	@ResourceCount(normal = Resource.LINUM_TIRINUM, corrupted = Resource.CORRUPTED_LINUM_TIRINUM)
 	default int resourceTirinum()
 	{
 		return 3;
@@ -182,7 +178,6 @@ public interface TheGauntletConfig extends Config
 		keyName = "resourceGrym",
 		section = resourceTrackingSection
 	)
-	@ResourceCount(normal = Resource.GRYM_LEAF, corrupted = Resource.CORRUPTED_GRYM_LEAF)
 	default int resourceGrym()
 	{
 		return 2;
@@ -195,7 +190,6 @@ public interface TheGauntletConfig extends Config
 		keyName = "resourceFrame",
 		section = resourceTrackingSection
 	)
-	@ResourceCount(normal = Resource.WEAPON_FRAME, corrupted = Resource.CORRUPTED_WEAPON_FRAME)
 	default int resourceFrame()
 	{
 		return 2;
@@ -208,7 +202,6 @@ public interface TheGauntletConfig extends Config
 		keyName = "resourcePaddlefish",
 		section = resourceTrackingSection
 	)
-	@ResourceCount(normal = Resource.RAW_PADDLEFISH, corrupted = Resource.RAW_PADDLEFISH)
 	default int resourcePaddlefish()
 	{
 		return 20;
@@ -221,7 +214,6 @@ public interface TheGauntletConfig extends Config
 		keyName = "resourceShard",
 		section = resourceTrackingSection
 	)
-	@ResourceCount(normal = Resource.CRYSTAL_SHARDS, corrupted = Resource.CORRUPTED_SHARDS)
 	default int resourceShard()
 	{
 		return 320;
@@ -234,7 +226,6 @@ public interface TheGauntletConfig extends Config
 		keyName = "resourceBowstring",
 		section = resourceTrackingSection
 	)
-	@ResourceCount(normal = Resource.CRYSTALLINE_BOWSTRING, corrupted = Resource.CORRUPTED_BOWSTRING)
 	default boolean resourceBowstring()
 	{
 		return false;
@@ -247,7 +238,6 @@ public interface TheGauntletConfig extends Config
 		keyName = "resourceSpike",
 		section = resourceTrackingSection
 	)
-	@ResourceCount(normal = Resource.CRYSTAL_SPIKE, corrupted = Resource.CORRUPTED_SPIKE)
 	default boolean resourceSpike()
 	{
 		return false;
@@ -260,7 +250,6 @@ public interface TheGauntletConfig extends Config
 		keyName = "resourceOrb",
 		section = resourceTrackingSection
 	)
-	@ResourceCount(normal = Resource.CRYSTAL_ORB, corrupted = Resource.CORRUPTED_ORB)
 	default boolean resourceOrb()
 	{
 		return false;

@@ -28,14 +28,11 @@
 
 package ca.gauntlet.module.maze;
 
-import ca.gauntlet.ResourceCount;
 import ca.gauntlet.TheGauntletConfig;
 import ca.gauntlet.TheGauntletConfig.TrackingMode;
 import ca.gauntlet.TheGauntletPlugin;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.AbstractMap;
 import java.util.EnumMap;
 import java.util.regex.Matcher;
@@ -206,37 +203,16 @@ class ResourceManager
 	private void createResourceCountersFromConfig()
 	{
 		final boolean corrupted = region == Region.CORRUPTED;
-
-		for (final Method m : TheGauntletConfig.class.getMethods())
-		{
-			final ResourceCount resourceCount = m.getAnnotation(ResourceCount.class);
-
-			if (resourceCount == null)
-			{
-				continue;
-			}
-
-			try
-			{
-				final Resource resource = corrupted ? resourceCount.corrupted() : resourceCount.normal();
-				final Object result = m.invoke(config);
-				final Class<?> returnType = m.getReturnType();
-
-				if (returnType.equals(Integer.TYPE))
-				{
-					createResourceCounter(resource, (int) result);
-				}
-				else if (returnType.equals(Boolean.TYPE))
-				{
-					createResourceCounter(resource, (boolean) result ? 1 : 0);
-				}
-			}
-			catch (final InvocationTargetException | IllegalAccessException | ClassCastException e)
-			{
-				log.error("Error creating resource counter from config " + m.getName());
-				e.printStackTrace();
-			}
-		}
+		createResourceCounter(corrupted ? Resource.CORRUPTED_ORE : Resource.CRYSTAL_ORE, config.resourceOre());
+		createResourceCounter(corrupted ? Resource.CORRUPTED_PHREN_BARK : Resource.PHREN_BARK, config.resourceBark());
+		createResourceCounter(corrupted ? Resource.CORRUPTED_LINUM_TIRINUM : Resource.LINUM_TIRINUM, config.resourceTirinum());
+		createResourceCounter(corrupted ? Resource.CORRUPTED_GRYM_LEAF : Resource.GRYM_LEAF, config.resourceGrym());
+		createResourceCounter(corrupted ? Resource.CORRUPTED_WEAPON_FRAME : Resource.WEAPON_FRAME, config.resourceFrame());
+		createResourceCounter(Resource.RAW_PADDLEFISH, config.resourcePaddlefish());
+		createResourceCounter(corrupted ? Resource.CORRUPTED_SHARDS : Resource.CRYSTAL_SHARDS, config.resourceShard());
+		createResourceCounter(corrupted ? Resource.CORRUPTED_BOWSTRING : Resource.CRYSTALLINE_BOWSTRING, config.resourceBowstring() ? 1 : 0);
+		createResourceCounter(corrupted ? Resource.CORRUPTED_SPIKE : Resource.CRYSTAL_SPIKE, config.resourceSpike() ? 1 : 0);
+		createResourceCounter(corrupted ? Resource.CORRUPTED_ORB : Resource.CRYSTAL_ORB, config.resourceOrb() ? 1 : 0);
 	}
 
 	private enum Region
