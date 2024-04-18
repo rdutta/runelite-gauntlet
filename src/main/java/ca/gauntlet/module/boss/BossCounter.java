@@ -1,9 +1,8 @@
 package ca.gauntlet.module.boss;
 
 import ca.gauntlet.TheGauntletConfig;
-import ca.gauntlet.TheGauntletPlugin;
 import lombok.Getter;
-import net.runelite.client.plugins.Plugin;
+import lombok.Setter;
 import net.runelite.client.ui.overlay.*;
 
 import javax.inject.Inject;
@@ -20,7 +19,9 @@ public class BossCounter extends Overlay
     @Getter
     private int playerAttackCount = 0;
     @Getter
-    private String bossPrayer = "RANGE";
+    private String bossAttackStyle = "RANGE";
+    @Getter @Setter
+    private String bossCurrentPrayer = "";
 
     @Inject
     private BossCounter(final TheGauntletConfig config)
@@ -50,10 +51,10 @@ public class BossCounter extends Overlay
         OverlayUtil.renderTextLocation(graphics, playerPoint, playerAttacks, Color.WHITE);
         OverlayUtil.renderTextLocation(graphics, reqPoint, reqPrayer, Color.WHITE);
 
-        if(bossPrayer.equals("RANGE"))
-            OverlayUtil.renderTextLocation(graphics, prayPoint, bossPrayer, Color.GREEN);
-        else if(bossPrayer.equals("MAGIC"))
-            OverlayUtil.renderTextLocation(graphics, prayPoint, bossPrayer, Color.BLUE);
+        if(bossAttackStyle.equals("RANGE"))
+            OverlayUtil.renderTextLocation(graphics, prayPoint, bossAttackStyle, Color.GREEN);
+        else if(bossAttackStyle.equals("MAGIC"))
+            OverlayUtil.renderTextLocation(graphics, prayPoint, bossAttackStyle, Color.BLUE);
 
         return null;
     }
@@ -73,17 +74,9 @@ public class BossCounter extends Overlay
             resetPlayerAttackCount();
     }
 
-    void updateBossPrayer(String prayer)
-    {
-        bossPrayer = prayer;
-    }
-    void resetPlayerAttackCount()
-    {
-        playerAttackCount = 0;
-    }
-    void resetBossAttackCount()
-    {
-        bossAttackCount = 0;
-    }
-    void resetPrayer() { bossPrayer = "RANGE"; }
+    void updateBossAttackStyle(String prayer) { bossAttackStyle = prayer; }
+    void resetPrayer() { bossAttackStyle = "RANGE"; }
+    void resetPlayerAttackCount() { playerAttackCount = 0; }
+    void resetBossAttackCount() { bossAttackCount = 0; }
+
 }

@@ -74,7 +74,7 @@ public final class BossModule implements Module
 	private BossCounter bossCounter;
 	@Inject
 	private TheGauntletPlugin theGauntletPlugin;
-
+	private String lastKnownPrayer = "MAGIX"; // Temp as this will change on entering the gauntlent.
 	public NPC currentNPC;
 
 	@Override
@@ -148,11 +148,6 @@ public final class BossModule implements Module
 		}
 	}
 
-	private void resetPlayerAttackCounter()
-	{
-		bossCounter.resetPlayerAttackCount();
-	}
-
 	@Subscribe
 	void onAnimationChanged(final AnimationChanged event)
 	{
@@ -168,10 +163,10 @@ public final class BossModule implements Module
 					bossCounter.incrementBossAttack();
 					break;
 				case 8754:
-					bossCounter.updateBossPrayer("MAGIC");
+					bossCounter.updateBossAttackStyle("MAGIC");
 					break;
 				case 8755:
-					bossCounter.updateBossPrayer("RANGE");
+					bossCounter.updateBossAttackStyle("RANGE");
 			}
 		}
 		else if (event.getActor() instanceof Player)
@@ -179,10 +174,36 @@ public final class BossModule implements Module
 			final Player player = (Player) event.getActor();
 			final int playerAnimation = player.getAnimation();
 
-			if ((playerAnimation == 428 && (currentNPC.getId() == NpcID.CORRUPTED_HUNLLEF_9036 || currentNPC.getId() == NpcID.CORRUPTED_HUNLLEF_9037)) ||
-					(playerAnimation == 426 && (currentNPC.getId() == NpcID.CORRUPTED_HUNLLEF || currentNPC.getId() == NpcID.CORRUPTED_HUNLLEF_9037)) ||
-					(playerAnimation == 1167 && (currentNPC.getId() == NpcID.CORRUPTED_HUNLLEF || currentNPC.getId() == NpcID.CORRUPTED_HUNLLEF_9036)))
+			// First if statement is checking that the players attack is valid enough to be counted
+			// e.a. We attack with melee and the boss is NOT praying melee (it can pray magic or range)
+			if ((playerAnimation == 428 && (currentNPC.getId() != NpcID.CORRUPTED_HUNLLEF)) ||
+					(playerAnimation == 426 && (currentNPC.getId() != NpcID.CORRUPTED_HUNLLEF_9036)) ||
+					(playerAnimation == 1167 && (currentNPC.getId() != NpcID.CORRUPTED_HUNLLEF_9037)))
 			{
+				/* Sometimes this game is stupid and doesn't count the attack animation (if the player splashes with magic it
+				will never count this attack though the animation played. I guess the animation is only registered on a hit).
+
+				These if statements account for the edge case that any attack style wasn't accounted for at some point. It checks
+				the current prayer the boss is prayer, and compares it to the lastKnownPrayer. If the lastKnownPrayer is different
+				from what it is currently praying, then at some point an attack from the player wasn't registered. We update
+				the last known prayer to what the boss is currently praying, and reset the player attack count as it will
+				be out of sync if any of these cases pass.
+				 */
+				if(currentNPC.getId() == NpcID.CORRUPTED_HUNLLEF && (!lastKnownPrayer.equals("MELEE")))
+				{
+					bossCounter.resetPlayerAttackCount();
+					lastKnownPrayer = "MELEE";
+				}
+				else if(currentNPC.getId() == NpcID.CORRUPTED_HUNLLEF_9036 && (!lastKnownPrayer.equals("RANGE")))
+				{
+					bossCounter.resetPlayerAttackCount();
+					lastKnownPrayer = "RANGE";
+				}
+				else if(currentNPC.getId() == NpcID.CORRUPTED_HUNLLEF_9037 && (!lastKnownPrayer.equals("MAGIC")))
+				{
+					bossCounter.resetPlayerAttackCount();
+					lastKnownPrayer = "MAGIC";
+				}
 				bossCounter.incrementPlayerAttackCount();
 			}
 		}
