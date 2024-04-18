@@ -180,14 +180,16 @@ public final class BossModule implements Module
 					(playerAnimation == 426 && (currentNPC.getId() != NpcID.CORRUPTED_HUNLLEF_9036)) ||
 					(playerAnimation == 1167 && (currentNPC.getId() != NpcID.CORRUPTED_HUNLLEF_9037)))
 			{
-				/* Sometimes this game is stupid and doesn't count the attack animation (if the player splashes with magic it
-				will never count this attack though the animation played. I guess the animation is only registered on a hit).
+				/* Sometimes this game is stupid and doesn't count the attack animation:
+				 - if the player splashes with magic it will never count this attack though the animation played. I guess
+				 the animation is only registered on a hit.
+				 - if the player attacks too quickly entering the room, the animationID from entering the doorway will
+				 override the attack animation, so the attack is never registered though we did attack.
 
-				These if statements account for the edge case that any attack style wasn't accounted for at some point. It checks
-				the current prayer the boss is prayer, and compares it to the lastKnownPrayer. If the lastKnownPrayer is different
-				from what it is currently praying, then at some point an attack from the player wasn't registered. We update
-				the last known prayer to what the boss is currently praying, and reset the player attack count as it will
-				be out of sync if any of these cases pass.
+				The following if statements account for the edge case that any attack style wasn't accounted for at some point during
+				the fight. It checks the current prayer that the boss is praying, and compares it to the lastKnownPrayer. If the lastKnownPrayer
+				is different from what it is currently praying, then at some point an attack from the player wasn't registered. We update
+				the last known prayer to what the boss is currently praying, and reset the player attack count as it will be out of sync if any of these cases pass.
 				 */
 				if(currentNPC.getId() == NpcID.CORRUPTED_HUNLLEF && (!lastKnownPrayer.equals("MELEE")))
 				{
