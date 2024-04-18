@@ -36,12 +36,17 @@ import com.google.inject.Provides;
 import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.events.AnimationChanged;
+import net.runelite.api.NPC;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @PluginDescriptor(
 	name = "The Gauntlet",
@@ -62,6 +67,9 @@ public final class TheGauntletPlugin extends Plugin
 	@Inject
 	private BossModule bossModule;
 
+	private ArrayList<Integer> hunIds = new ArrayList<>(3);
+	private int hunPrayerIdCount = 1;
+
 	@Provides
 	TheGauntletConfig provideConfig(final ConfigManager configManager)
 	{
@@ -71,6 +79,8 @@ public final class TheGauntletPlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
+		final List<Integer> hunIds = List.of(9035, 9036, 9037);
+
 		if (client.getGameState() != GameState.LOGGED_IN)
 		{
 			return;
@@ -124,4 +134,24 @@ public final class TheGauntletPlugin extends Plugin
 			}
 		}
 	}
+
+	@Subscribe
+	void onAnimationChanged(final AnimationChanged event)
+	{
+		if (event.getActor() instanceof NPC)
+		{
+			final NPC npc = (NPC) event.getActor();
+
+			if(npc != null && hunIds.contains(npc.getId()) && hunPrayerIdCount < 2)
+				hunPrayerIdCount++;
+			else if (hunPrayerIdCount == 2 && npc != null && (npc.getId() == 9035 || npc.getId() == 9036 || npc.getId() == 9037))
+			{
+				bossModule.currentNPC = npc;
+				hunPrayerIdCount++;
+			}
+		}
+	}
+
+	public void resetIdCount() { hunPrayerIdCount = 0; }
+	public void resetHunIdCount() { hunPrayerIdCount = 1; }
 }

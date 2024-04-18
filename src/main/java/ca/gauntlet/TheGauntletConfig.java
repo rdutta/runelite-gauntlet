@@ -893,6 +893,15 @@ public interface TheGauntletConfig extends Config
 		return false;
 	}
 
+	@ConfigItem(
+			position = 10,
+			keyName = "bossOverlay",
+			name = "Boss Counter",
+			description = "Displays the player's and Boss' attack counts to easily track prayer/weapon switches",
+			section = hunllefSection
+	)
+	default boolean bossCounterOverlay() { return false; }
+
 	// Constants
 
 	@Getter

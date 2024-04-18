@@ -28,23 +28,19 @@
 package ca.gauntlet.module.boss;
 
 import ca.gauntlet.TheGauntletConfig;
+import ca.gauntlet.TheGauntletPlugin;
 import ca.gauntlet.module.Module;
 import ca.gauntlet.module.overlay.TimerOverlay;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import net.runelite.api.Player;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.AccessLevel;
 import lombok.Getter;
-import net.runelite.api.Client;
-import net.runelite.api.NPC;
-import net.runelite.api.NpcID;
-import net.runelite.api.NullNpcID;
-import net.runelite.api.events.ActorDeath;
-import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.NpcDespawned;
-import net.runelite.api.events.NpcSpawned;
+import net.runelite.api.*;
+import net.runelite.api.events.*;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.npcoverlay.HighlightedNpc;
@@ -74,6 +70,12 @@ public final class BossModule implements Module
 	private TimerOverlay timerOverlay;
 	@Inject
 	private BossOverlay bossOverlay;
+	@Inject
+	private BossCounter bossCounter;
+	@Inject
+	private TheGauntletPlugin theGauntletPlugin;
+
+	public NPC currentNPC;
 
 	@Override
 	public void start()
@@ -82,6 +84,7 @@ public final class BossModule implements Module
 		npcOverlayService.registerHighlighter(npcHighlighter);
 		overlayManager.add(timerOverlay);
 		overlayManager.add(bossOverlay);
+		overlayManager.add(bossCounter);
 		timerOverlay.setHunllefStart();
 	}
 
@@ -92,6 +95,12 @@ public final class BossModule implements Module
 		npcOverlayService.unregisterHighlighter(npcHighlighter);
 		overlayManager.remove(timerOverlay);
 		overlayManager.remove(bossOverlay);
+		overlayManager.remove(bossCounter);
+		bossCounter.resetBossAttackCount();
+		bossCounter.resetPlayerAttackCount();
+		bossCounter.resetPrayer();
+		theGauntletPlugin.resetIdCount();
+		theGauntletPlugin.resetHunIdCount();
 		timerOverlay.reset();
 		tornadoes.clear();
 	}
@@ -136,6 +145,46 @@ public final class BossModule implements Module
 		if (TORNADO_IDS.contains(npc.getId()))
 		{
 			tornadoes.removeIf(t -> t == npc);
+		}
+	}
+
+	private void resetPlayerAttackCounter()
+	{
+		bossCounter.resetPlayerAttackCount();
+	}
+
+	@Subscribe
+	void onAnimationChanged(final AnimationChanged event)
+	{
+		if (event.getActor() instanceof NPC)
+		{
+			final NPC npc = (NPC) event.getActor();
+			currentNPC = npc;
+
+			switch (npc.getAnimation())
+			{
+				case 8418:
+				case 8419:
+					bossCounter.incrementBossAttack();
+					break;
+				case 8754:
+					bossCounter.updateBossPrayer("MAGIC");
+					break;
+				case 8755:
+					bossCounter.updateBossPrayer("RANGE");
+			}
+		}
+		else if (event.getActor() instanceof Player)
+		{
+			final Player player = (Player) event.getActor();
+			final int playerAnimation = player.getAnimation();
+
+			if ((playerAnimation == 428 && (currentNPC.getId() == NpcID.CORRUPTED_HUNLLEF_9036 || currentNPC.getId() == NpcID.CORRUPTED_HUNLLEF_9037)) ||
+					(playerAnimation == 426 && (currentNPC.getId() == NpcID.CORRUPTED_HUNLLEF || currentNPC.getId() == NpcID.CORRUPTED_HUNLLEF_9037)) ||
+					(playerAnimation == 1167 && (currentNPC.getId() == NpcID.CORRUPTED_HUNLLEF || currentNPC.getId() == NpcID.CORRUPTED_HUNLLEF_9036)))
+			{
+				bossCounter.incrementPlayerAttackCount();
+			}
 		}
 	}
 
