@@ -189,4 +189,5 @@ public final class TheGauntletPlugin extends Plugin
 
 	public void resetIdCount() { hunPrayerIdCount = 0; }
 	public void resetHunIdCount() { hunPrayerIdCount = 1; }
+	public void resetAnimCount() { animationChangedCounter = 0; }
 }

@@ -99,6 +99,7 @@ public final class BossModule implements Module
 		bossCounter.resetBossAttackCount();
 		bossCounter.resetPlayerAttackCount();
 		bossCounter.resetPrayer();
+		theGauntletPlugin.resetAnimCount();
 		theGauntletPlugin.resetIdCount();
 		theGauntletPlugin.resetHunIdCount();
 		timerOverlay.reset();
