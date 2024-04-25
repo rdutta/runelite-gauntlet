@@ -42,9 +42,9 @@ public class BossCounter extends Overlay
         String hunlleffAttacks = "Boss Attacks: " + bossAttackCount;
         String reqPrayer = "You need to pray: ";
 
-        net.runelite.api.Point hunlleffPoint = new net.runelite.api.Point(10, 160); // Adjust the position as needed
-        net.runelite.api.Point playerPoint = new net.runelite.api.Point(10, 170); // Adjust the position as needed
-        net.runelite.api.Point reqPoint = new net.runelite.api.Point(10, 200); // Adjust the position as needed
+        net.runelite.api.Point hunlleffPoint = new net.runelite.api.Point(10, 160);
+        net.runelite.api.Point playerPoint = new net.runelite.api.Point(10, 170);
+        net.runelite.api.Point reqPoint = new net.runelite.api.Point(10, 200);
         net.runelite.api.Point prayPoint = new net.runelite.api.Point(100, 200);
 
         OverlayUtil.renderTextLocation(graphics, hunlleffPoint, hunlleffAttacks, Color.WHITE);

@@ -39,9 +39,11 @@ import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.events.AnimationChanged;
 import net.runelite.api.NPC;
+import net.runelite.api.events.NpcSpawned;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -72,6 +74,8 @@ public final class TheGauntletPlugin extends Plugin
 
 	private ArrayList<Integer> hunIds = new ArrayList<>(3);
 	private int hunPrayerIdCount = 1;
+	private int animationChangedCounter = 0;
+	private static final int MAX_ANIMATION_CHANGED_COUNT = 3;
 
 	@Provides
 	TheGauntletConfig provideConfig(final ConfigManager configManager)
@@ -149,13 +153,21 @@ public final class TheGauntletPlugin extends Plugin
 	@Subscribe
 	void onAnimationChanged(final AnimationChanged event)
 	{
+		if(animationChangedCounter >= MAX_ANIMATION_CHANGED_COUNT)
+			return;
+
+		animationChangedCounter++;
+
 		if (event.getActor() instanceof NPC)
 		{
 			final NPC npc = (NPC) event.getActor();
 
 			if(npc != null && hunIds.contains(npc.getId()) && hunPrayerIdCount < 2)
+			{
 				hunPrayerIdCount++;
-			else if (hunPrayerIdCount == 2 && npc != null && (npc.getId() == 9035 || npc.getId() == 9036 || npc.getId() == 9037))
+				animationChangedCounter++;
+			}
+			else if (hunPrayerIdCount == 2 && npc != null && (hunIds.contains(npc.getId())))
 			{
 				bossModule.currentNPC = npc;
 				hunPrayerIdCount++;

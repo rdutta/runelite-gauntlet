@@ -156,6 +156,9 @@ public final class BossModule implements Module
 			final NPC npc = (NPC) event.getActor();
 			currentNPC = npc;
 
+			if(npc == null)
+				return;
+
 			switch (npc.getAnimation())
 			{
 				case 8418:
@@ -174,6 +177,8 @@ public final class BossModule implements Module
 			final Player player = (Player) event.getActor();
 			final int playerAnimation = player.getAnimation();
 
+			if(currentNPC == null)
+				return;
 			// First if statement is checking that the players attack is valid enough to be counted
 			// e.a. We attack with melee and the boss is NOT praying melee (it can pray magic or range)
 			if ((playerAnimation == 428 && (currentNPC.getId() != NpcID.CORRUPTED_HUNLLEF)) ||
