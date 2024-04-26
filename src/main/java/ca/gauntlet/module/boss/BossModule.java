@@ -72,8 +72,6 @@ public final class BossModule implements Module
 	private BossOverlay bossOverlay;
 	@Inject
 	private BossCounter bossCounter;
-	@Inject
-	private TheGauntletPlugin theGauntletPlugin;
 	private String lastKnownPrayer = "MAGIX"; // Temp as this will change on entering the gauntlent.
 	public NPC currentNPC;
 
@@ -98,10 +96,6 @@ public final class BossModule implements Module
 		overlayManager.remove(bossCounter);
 		bossCounter.resetBossAttackCount();
 		bossCounter.resetPlayerAttackCount();
-		bossCounter.resetPrayer();
-		theGauntletPlugin.resetAnimCount();
-		theGauntletPlugin.resetIdCount();
-		theGauntletPlugin.resetHunIdCount();
 		timerOverlay.reset();
 		tornadoes.clear();
 	}
@@ -166,11 +160,6 @@ public final class BossModule implements Module
 				case 8419:
 					bossCounter.incrementBossAttack();
 					break;
-				case 8754:
-					bossCounter.updateBossAttackStyle("MAGIC");
-					break;
-				case 8755:
-					bossCounter.updateBossAttackStyle("RANGE");
 			}
 		}
 		else if (event.getActor() instanceof Player)
@@ -180,23 +169,10 @@ public final class BossModule implements Module
 
 			if(currentNPC == null)
 				return;
-			// First if statement is checking that the players attack is valid enough to be counted
-			// e.a. We attack with melee and the boss is NOT praying melee (it can pray magic or range)
 			if ((playerAnimation == 428 && (currentNPC.getId() != NpcID.CORRUPTED_HUNLLEF)) ||
 					(playerAnimation == 426 && (currentNPC.getId() != NpcID.CORRUPTED_HUNLLEF_9036)) ||
 					(playerAnimation == 1167 && (currentNPC.getId() != NpcID.CORRUPTED_HUNLLEF_9037)))
 			{
-				/* Sometimes this game is stupid and doesn't count the attack animation:
-				 - if the player splashes with magic it will never count this attack though the animation played. I guess
-				 the animation is only registered on a hit.
-				 - if the player attacks too quickly entering the room, the animationID from entering the doorway will
-				 override the attack animation, so the attack is never registered though we did attack.
-
-				The following if statements account for the edge case that any attack style wasn't accounted for at some point during
-				the fight. It checks the current prayer that the boss is praying, and compares it to the lastKnownPrayer. If the lastKnownPrayer
-				is different from what it is currently praying, then at some point an attack from the player wasn't registered. We update
-				the last known prayer to what the boss is currently praying, and reset the player attack count as it will be out of sync if any of these cases pass.
-				 */
 				if(currentNPC.getId() == NpcID.CORRUPTED_HUNLLEF && (!lastKnownPrayer.equals("MELEE")))
 				{
 					bossCounter.resetPlayerAttackCount();

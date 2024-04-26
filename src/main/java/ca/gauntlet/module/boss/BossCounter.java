@@ -18,10 +18,6 @@ public class BossCounter extends Overlay
     private int bossAttackCount = 0;
     @Getter
     private int playerAttackCount = 0;
-    @Getter
-    private String bossAttackStyle = "RANGE";
-    @Getter @Setter
-    private String bossCurrentPrayer = "";
 
     @Inject
     private BossCounter(final TheGauntletConfig config)
@@ -40,21 +36,11 @@ public class BossCounter extends Overlay
 
         String playerAttacks = "Player Attacks: " + playerAttackCount;
         String hunlleffAttacks = "Boss Attacks: " + bossAttackCount;
-        String reqPrayer = "You need to pray: ";
 
         net.runelite.api.Point hunlleffPoint = new net.runelite.api.Point(10, 160);
         net.runelite.api.Point playerPoint = new net.runelite.api.Point(10, 170);
-        net.runelite.api.Point reqPoint = new net.runelite.api.Point(10, 200);
-        net.runelite.api.Point prayPoint = new net.runelite.api.Point(100, 200);
-
         OverlayUtil.renderTextLocation(graphics, hunlleffPoint, hunlleffAttacks, Color.WHITE);
         OverlayUtil.renderTextLocation(graphics, playerPoint, playerAttacks, Color.WHITE);
-        OverlayUtil.renderTextLocation(graphics, reqPoint, reqPrayer, Color.WHITE);
-
-        if(bossAttackStyle.equals("RANGE"))
-            OverlayUtil.renderTextLocation(graphics, prayPoint, bossAttackStyle, Color.GREEN);
-        else if(bossAttackStyle.equals("MAGIC"))
-            OverlayUtil.renderTextLocation(graphics, prayPoint, bossAttackStyle, Color.BLUE);
 
         return null;
     }
@@ -74,8 +60,6 @@ public class BossCounter extends Overlay
             resetPlayerAttackCount();
     }
 
-    void updateBossAttackStyle(String prayer) { bossAttackStyle = prayer; }
-    void resetPrayer() { bossAttackStyle = "RANGE"; }
     void resetPlayerAttackCount() { playerAttackCount = 0; }
     void resetBossAttackCount() { bossAttackCount = 0; }
 

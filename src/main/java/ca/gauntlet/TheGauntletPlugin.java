@@ -69,13 +69,6 @@ public final class TheGauntletPlugin extends Plugin
 	private MazeModule mazeModule;
 	@Inject
 	private BossModule bossModule;
-	@Inject
-	private BossCounter bossCounter;
-
-	private ArrayList<Integer> hunIds = new ArrayList<>(3);
-	private int hunPrayerIdCount = 1;
-	private int animationChangedCounter = 0;
-	private static final int MAX_ANIMATION_CHANGED_COUNT = 3;
 
 	@Provides
 	TheGauntletConfig provideConfig(final ConfigManager configManager)
@@ -86,8 +79,6 @@ public final class TheGauntletPlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
-		final List<Integer> hunIds = List.of(9035, 9036, 9037);
-
 		if (client.getGameState() != GameState.LOGGED_IN)
 		{
 			return;
@@ -141,53 +132,4 @@ public final class TheGauntletPlugin extends Plugin
 			}
 		}
 	}
-
-	/*
-	Once again, for some reason when you spawn into the gaunlent the ID of the boss will always be default a.k.a
-	CORRUPTED_HUNLLEFF/9035. After it does it's 'Awakening' animation, the game will correctly update the boss' ID
-	to what it is currently praying. This function SHOULD only run three times.
-	 - Once to ignore the random default ID
-	 - Once again to get the proper ID
-	 - Lastly it will run again, updating the currentNPC in the BossModule class, as well as getting its current prayer.
-	 */
-	@Subscribe
-	void onAnimationChanged(final AnimationChanged event)
-	{
-		if(animationChangedCounter >= MAX_ANIMATION_CHANGED_COUNT)
-			return;
-
-		animationChangedCounter++;
-
-		if (event.getActor() instanceof NPC)
-		{
-			final NPC npc = (NPC) event.getActor();
-
-			if(npc != null && hunIds.contains(npc.getId()) && hunPrayerIdCount < 2)
-			{
-				hunPrayerIdCount++;
-				animationChangedCounter++;
-			}
-			else if (hunPrayerIdCount == 2 && npc != null && (hunIds.contains(npc.getId())))
-			{
-				bossModule.currentNPC = npc;
-				hunPrayerIdCount++;
-				switch(npc.getId())
-				{
-					case 9035:
-						bossCounter.setBossCurrentPrayer("MELEE");
-						break;
-					case 9036:
-						bossCounter.setBossCurrentPrayer("RANGE");
-						break;
-					case 9037:
-						bossCounter.setBossCurrentPrayer("MAGIC");
-						break;
-				}
-			}
-		}
-	}
-
-	public void resetIdCount() { hunPrayerIdCount = 0; }
-	public void resetHunIdCount() { hunPrayerIdCount = 1; }
-	public void resetAnimCount() { animationChangedCounter = 0; }
 }
