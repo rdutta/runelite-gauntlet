@@ -603,6 +603,18 @@ public interface TheGauntletConfig extends Config
 		return false;
 	}
 
+	@ConfigItem(
+		name = "Color tile by prayer",
+		description = "Hunllef's tile color will correspond to its active prayer.",
+		position = 1,
+		keyName = "hunllefPrayerOutlineColor",
+		section = hunllefSection
+	)
+	default PrayerTileOutline hunllefPrayerOutlineColor()
+	{
+		return PrayerTileOutline.OFF;
+	}
+
 	@Range(
 		min = 1,
 		max = 2
@@ -610,7 +622,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Tile outline width",
 		description = "Change the width of the Hunllef's tile outline.",
-		position = 1,
+		position = 2,
 		keyName = "hunllefTileOutlineWidth",
 		section = hunllefSection
 	)
@@ -624,7 +636,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Tile outline color",
 		description = "Change the outline color of the Hunllef's tile.",
-		position = 2,
+		position = 3,
 		keyName = "hunllefOutlineColor",
 		section = hunllefSection
 	)
@@ -637,7 +649,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Tile fill color",
 		description = "Change the fill color of the Hunllef's tile.",
-		position = 3,
+		position = 4,
 		keyName = "hunllefFillColor",
 		section = hunllefSection
 	)
@@ -649,7 +661,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Outline tornado tile",
 		description = "Outline the tiles of tornadoes.",
-		position = 4,
+		position = 5,
 		keyName = "tornadoTileOutline",
 		section = hunllefSection
 	)
@@ -665,7 +677,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Tile outline width",
 		description = "Change tile outline width of tornadoes.",
-		position = 5,
+		position = 6,
 		keyName = "tornadoTileOutlineWidth",
 		section = hunllefSection
 	)
@@ -679,7 +691,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Tile outline color",
 		description = "Color to outline the tile of a tornado.",
-		position = 6,
+		position = 7,
 		keyName = "tornadoOutlineColor",
 		section = hunllefSection
 	)
@@ -692,7 +704,7 @@ public interface TheGauntletConfig extends Config
 	@ConfigItem(
 		name = "Tile fill color",
 		description = "Color to fill the tile of a tornado.",
-		position = 7,
+		position = 8,
 		keyName = "tornadoFillColor",
 		section = hunllefSection
 	)
@@ -902,6 +914,23 @@ public interface TheGauntletConfig extends Config
 		OFF("Off"),
 		ON("On"),
 		TRUE_TILE("True Tile");
+
+		private final String name;
+
+		@Override
+		public String toString()
+		{
+			return name;
+		}
+	}
+
+	@Getter
+	@AllArgsConstructor
+	enum PrayerTileOutline
+	{
+		OFF("Off"),
+		ON("On"),
+		INVERTED("Inverted");
 
 		private final String name;
 

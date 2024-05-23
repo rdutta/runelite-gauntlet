@@ -27,12 +27,11 @@
 
 package ca.gauntlet.module.boss;
 
-import ca.gauntlet.TheGauntletConfig;
 import ca.gauntlet.module.Module;
 import ca.gauntlet.module.overlay.TimerOverlay;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.AccessLevel;
@@ -47,15 +46,23 @@ import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
-import net.runelite.client.game.npcoverlay.HighlightedNpc;
-import net.runelite.client.game.npcoverlay.NpcOverlayService;
 import net.runelite.client.ui.overlay.OverlayManager;
 
 @Singleton
 public final class BossModule implements Module
 {
+	private static final List<Integer> HUNLLEF_IDS = List.of(
+		NpcID.CRYSTALLINE_HUNLLEF,
+		NpcID.CRYSTALLINE_HUNLLEF_9022,
+		NpcID.CRYSTALLINE_HUNLLEF_9023,
+		NpcID.CRYSTALLINE_HUNLLEF_9024,
+		NpcID.CORRUPTED_HUNLLEF,
+		NpcID.CORRUPTED_HUNLLEF_9036,
+		NpcID.CORRUPTED_HUNLLEF_9037,
+		NpcID.CORRUPTED_HUNLLEF_9038
+	);
+
 	private static final List<Integer> TORNADO_IDS = List.of(NullNpcID.NULL_9025, NullNpcID.NULL_9039);
-	private final Function<NPC, HighlightedNpc> npcHighlighter = this::highlightNpc;
 
 	@Getter(AccessLevel.PACKAGE)
 	private final List<NPC> tornadoes = new ArrayList<>();
@@ -65,21 +72,26 @@ public final class BossModule implements Module
 	@Inject
 	private Client client;
 	@Inject
-	private TheGauntletConfig config;
-	@Inject
-	private NpcOverlayService npcOverlayService;
-	@Inject
 	private OverlayManager overlayManager;
 	@Inject
 	private TimerOverlay timerOverlay;
 	@Inject
 	private BossOverlay bossOverlay;
 
+	@Nullable
+	@Getter(AccessLevel.PACKAGE)
+	private NPC hunllef;
+
 	@Override
 	public void start()
 	{
 		eventBus.register(this);
-		npcOverlayService.registerHighlighter(npcHighlighter);
+
+		for (final NPC npc : client.getNpcs())
+		{
+			onNpcSpawned(new NpcSpawned(npc));
+		}
+
 		overlayManager.add(timerOverlay);
 		overlayManager.add(bossOverlay);
 		timerOverlay.setHunllefStart();
@@ -89,11 +101,11 @@ public final class BossModule implements Module
 	public void stop()
 	{
 		eventBus.unregister(this);
-		npcOverlayService.unregisterHighlighter(npcHighlighter);
 		overlayManager.remove(timerOverlay);
 		overlayManager.remove(bossOverlay);
 		timerOverlay.reset();
 		tornadoes.clear();
+		hunllef = null;
 	}
 
 	@Subscribe
@@ -126,6 +138,10 @@ public final class BossModule implements Module
 		{
 			tornadoes.add(npc);
 		}
+		else if (HUNLLEF_IDS.contains(npc.getId()))
+		{
+			hunllef = npc;
+		}
 	}
 
 	@Subscribe
@@ -137,32 +153,9 @@ public final class BossModule implements Module
 		{
 			tornadoes.removeIf(t -> t == npc);
 		}
-	}
-
-	private HighlightedNpc highlightNpc(final NPC npc)
-	{
-		final int id = npc.getId();
-
-		switch (id)
+		else if (HUNLLEF_IDS.contains(npc.getId()))
 		{
-			case NpcID.CRYSTALLINE_HUNLLEF:
-			case NpcID.CRYSTALLINE_HUNLLEF_9022:
-			case NpcID.CRYSTALLINE_HUNLLEF_9023:
-			case NpcID.CRYSTALLINE_HUNLLEF_9024:
-			case NpcID.CORRUPTED_HUNLLEF:
-			case NpcID.CORRUPTED_HUNLLEF_9036:
-			case NpcID.CORRUPTED_HUNLLEF_9037:
-			case NpcID.CORRUPTED_HUNLLEF_9038:
-				return HighlightedNpc.builder()
-					.npc(npc)
-					.tile(true)
-					.borderWidth(config.hunllefTileOutlineWidth())
-					.fillColor(config.hunllefFillColor())
-					.highlightColor(config.hunllefOutlineColor())
-					.render(n -> config.hunllefTileOutline() && !npc.isDead())
-					.build();
-			default:
-				return null;
+			hunllef = null;
 		}
 	}
 }

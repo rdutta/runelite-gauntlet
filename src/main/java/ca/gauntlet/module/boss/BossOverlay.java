@@ -31,6 +31,7 @@ import ca.gauntlet.TheGauntletConfig;
 import ca.gauntlet.TheGauntletConfig.TileOutline;
 import ca.gauntlet.TheGauntletPlugin;
 import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
@@ -38,6 +39,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import net.runelite.api.Client;
 import net.runelite.api.NPC;
+import net.runelite.api.NpcID;
 import net.runelite.api.Perspective;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
@@ -76,6 +78,7 @@ class BossOverlay extends Overlay
 	public Dimension render(final Graphics2D graphics2D)
 	{
 		renderTornadoes(graphics2D);
+		renderHunllef(graphics2D);
 		return null;
 	}
 
@@ -123,5 +126,73 @@ class BossOverlay extends Overlay
 			OverlayUtil.renderPolygon(graphics2D, polygon, config.tornadoOutlineColor(), config.tornadoFillColor(),
 				new BasicStroke(config.tornadoTileOutlineWidth()));
 		}
+	}
+
+	private void renderHunllef(final Graphics2D graphics2D)
+	{
+		final NPC npc = bossModule.getHunllef();
+
+		if (npc == null || npc.isDead() || !config.hunllefTileOutline())
+		{
+			return;
+		}
+
+		final Polygon polygon = npc.getCanvasTilePoly();
+
+		if (polygon == null)
+		{
+			return;
+		}
+
+		Color outlineColor = config.hunllefOutlineColor();
+
+		switch (config.hunllefPrayerOutlineColor())
+		{
+			case OFF:
+				break;
+			case ON:
+				switch (npc.getId())
+				{
+					// Protect from Melee
+					case NpcID.CORRUPTED_HUNLLEF:
+					case NpcID.CRYSTALLINE_HUNLLEF:
+						outlineColor = Color.RED;
+						break;
+					// Protect from Missiles
+					case NpcID.CRYSTALLINE_HUNLLEF_9022:
+					case NpcID.CORRUPTED_HUNLLEF_9036:
+						outlineColor = Color.GREEN;
+						break;
+					// Protect from Magic
+					case NpcID.CRYSTALLINE_HUNLLEF_9023:
+					case NpcID.CORRUPTED_HUNLLEF_9037:
+						outlineColor = Color.BLUE;
+						break;
+				}
+				break;
+			case INVERTED:
+				switch (npc.getId())
+				{
+					// Protect from Melee
+					case NpcID.CORRUPTED_HUNLLEF:
+					case NpcID.CRYSTALLINE_HUNLLEF:
+						outlineColor = Color.RED;
+						break;
+					// Protect from Missiles
+					case NpcID.CRYSTALLINE_HUNLLEF_9022:
+					case NpcID.CORRUPTED_HUNLLEF_9036:
+						outlineColor = Color.BLUE;
+						break;
+					// Protect from Magic
+					case NpcID.CRYSTALLINE_HUNLLEF_9023:
+					case NpcID.CORRUPTED_HUNLLEF_9037:
+						outlineColor = Color.GREEN;
+						break;
+				}
+				break;
+		}
+
+		OverlayUtil.renderPolygon(graphics2D, polygon, outlineColor, config.hunllefFillColor(),
+			new BasicStroke(config.hunllefTileOutlineWidth()));
 	}
 }
