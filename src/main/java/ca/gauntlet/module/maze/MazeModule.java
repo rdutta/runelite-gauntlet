@@ -59,7 +59,7 @@ import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
 import net.runelite.api.events.PostMenuSort;
 import net.runelite.api.events.WidgetLoaded;
-import net.runelite.api.widgets.WidgetID;
+import net.runelite.api.widgets.InterfaceID;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
@@ -232,7 +232,7 @@ public final class MazeModule implements Module
 	@Subscribe
 	void onWidgetLoaded(final WidgetLoaded event)
 	{
-		if (event.getGroupId() == WidgetID.GAUNTLET_TIMER_GROUP_ID)
+		if (event.getGroupId() == InterfaceID.GAUNTLET_TIMER)
 		{
 			resourceManager.init(client.getMapRegions()[0]);
 			timerOverlay.setGauntletStart();
